@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const UserCheSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true },
+    fullName: { type: String, required: true },
     password: { type: String },
     email: { type: String, required: true, unique: true },
     googleId: { type: String, unique: true, sparse: true },

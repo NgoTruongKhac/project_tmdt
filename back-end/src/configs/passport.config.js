@@ -21,7 +21,7 @@ passport.use(
         if (existUser) return done(null, existUser);
 
         const newUser = new User({
-          username: profile.displayName,
+          fullName: profile.displayName,
           email: profile._json.email,
           googleId: profile.id,
           profilePicture: profile._json.picture,
@@ -34,8 +34,8 @@ passport.use(
         console.log(error);
         return done(error, null);
       }
-    }
-  )
+    },
+  ),
 );
 
 // Passport cần 2 hàm này để quản lý session người dùng
