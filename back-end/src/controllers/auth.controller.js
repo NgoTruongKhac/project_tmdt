@@ -11,10 +11,10 @@ import { JWT_REFRESH_KEY } from "../configs/env.js";
 
 export const register = async (req, res, next) => {
   try {
-    const { username, password, email } = req.body;
+    const { fullName, password, email } = req.body;
     const sessionOTP = Math.floor(100000 + Math.random() * 900000).toString();
     req.session.formData = {
-      username,
+      fullName,
       password,
       email,
       sessionOTP: sessionOTP,
@@ -38,7 +38,7 @@ export const register = async (req, res, next) => {
 export const verifyRegister = async (req, res, next) => {
   try {
     const { otp } = req.body;
-    const { username, password, email, createAt, sessionOTP } =
+    const { fullName, password, email, createAt, sessionOTP } =
       req.session.formData;
 
     const timeElapsed = Date.now() - createAt;
@@ -55,7 +55,7 @@ export const verifyRegister = async (req, res, next) => {
     const hashedPassword = await brcypt.hash(password, 10);
 
     const newUser = new User({
-      username,
+      fullName,
       password: hashedPassword,
       email,
     });

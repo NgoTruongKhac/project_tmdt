@@ -28,13 +28,12 @@ export default function Register() {
 
   const onSubmit = async (data: {
     fullName: string;
-    email: string;
     password: string;
+    email: string;
   }) => {
     try {
-      console.log("register");
       setIsLoading(true);
-      await signup(data.fullName, data.email, data.password);
+      await signup(data.fullName, data.password, data.email);
       setIsLoading(false);
       setShowModal(true);
     } catch (error) {
