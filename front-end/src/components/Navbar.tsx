@@ -1,12 +1,14 @@
-import { Search, Bell, User, LogOut } from "lucide-react";
+import { Search, Bell, User, LogOut, Heart } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useFavorite } from "@/contexts/FavoriteContext";
 
 export default function Navbar() {
   // Lấy thông tin user từ Zustand store
   const user = useAuthStore((state) => state.user);
   const { logout } = useAuthStore();
+  const { favoriteCount } = useFavorite();
 
   const handleLogout = () => {
     logout();
@@ -52,12 +54,28 @@ export default function Navbar() {
 
         {/* Icon Bell hiển thị khi đã đăng nhập (Giữ nguyên, tự động hoạt động trên cả mobile và desktop) */}
         {user && (
-          <button
-            className="btn btn-ghost btn-circle text-neutral-600 hover:text-primary hover:bg-primary-50 transition-colors"
-            title="Cài đặt"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
+          <>
+            <button
+              className="btn btn-ghost btn-circle text-neutral-600 hover:text-primary hover:bg-primary-50 transition-colors"
+              title="Thông báo"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+
+            {/* Icon Heart - Favorites */}
+            <Link
+              to="/favorites"
+              className="btn btn-ghost btn-circle text-neutral-600 hover:text-red-500 hover:bg-red-50 transition-colors relative"
+              title="Yêu thích"
+            >
+              <Heart className="w-5 h-5" />
+              {favoriteCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  {favoriteCount > 99 ? "99+" : favoriteCount}
+                </span>
+              )}
+            </Link>
+          </>
         )}
 
         {/* --- CẬP NHẬT: Xử lý Avatar và Menu Đăng nhập/Đăng ký --- */}
