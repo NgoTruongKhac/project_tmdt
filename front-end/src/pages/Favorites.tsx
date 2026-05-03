@@ -139,8 +139,7 @@ export default function Favorites() {
             Về trang chủ
           </Link>
           
-          <div className="flex items-center gap-3 mb-2">
-            <Heart className="w-8 h-8 text-red-500 fill-red-500" />
+          <div className="mb-2">
             <h1 className="text-3xl font-bold text-neutral-800">
               Danh sách yêu thích
             </h1>
@@ -174,6 +173,10 @@ export default function Favorites() {
                       src={favorite.service.thumbnail}
                       alt={favorite.service.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
+                      }}
                     />
                     
                     {/* Favorite Button */}

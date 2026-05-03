@@ -1,6 +1,6 @@
 import type { ServicePackage } from "@/api/serviceApi";
 import { formatCurrency, formatDate } from "@/utils/format";
-import { Eye, ShoppingCart, Star, TrendingUp, Sparkles } from "lucide-react";
+import { Eye, ShoppingCart } from "lucide-react";
 import FavoriteButton from "@/components/common/FavoriteButton";
 import { useToast } from "@/hooks/useToast";
 
@@ -23,20 +23,17 @@ export default function ServiceCard({
     switch (badgeType) {
       case "bestseller":
         return {
-          icon: <TrendingUp className="w-3 h-3" />,
-          text: "🔥 Bán chạy",
+          text: "Bán chạy",
           className: "bg-red-500 text-white"
         };
       case "new":
         return {
-          icon: <Sparkles className="w-3 h-3" />,
-          text: "🆕 Mới",
+          text: "Mới",
           className: "bg-green-500 text-white"
         };
       case "featured":
         return {
-          icon: <Star className="w-3 h-3" />,
-          text: "⭐ Nổi bật",
+          text: "Nổi bật",
           className: "bg-primary-500 text-white"
         };
       default:
@@ -51,8 +48,7 @@ export default function ServiceCard({
       <div className="group relative bg-white rounded-2xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 hover:border-primary-200">
         {/* Badge */}
         {showBadge && badgeContent && (
-          <div className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${badgeContent.className}`}>
-            {badgeContent.icon}
+          <div className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-medium ${badgeContent.className}`}>
             {badgeContent.text}
           </div>
         )}
@@ -63,6 +59,10 @@ export default function ServiceCard({
             src={service.thumbnail}
             alt={service.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
@@ -130,7 +130,7 @@ export default function ServiceCard({
       <div className="group relative bg-white rounded-xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 hover:border-primary-200 hover:-translate-y-1">
         {/* Badge */}
         {showBadge && badgeContent && (
-          <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${badgeContent.className}`}>
+          <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium ${badgeContent.className}`}>
             {badgeContent.text}
           </div>
         )}
@@ -141,6 +141,10 @@ export default function ServiceCard({
             src={service.thumbnail}
             alt={service.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
+            }}
           />
           
           {/* Favorite Button */}
@@ -195,7 +199,7 @@ export default function ServiceCard({
     <div className="group relative bg-white rounded-xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 hover:border-primary-200 hover:-translate-y-1">
       {/* Badge */}
       {showBadge && badgeContent && (
-        <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${badgeContent.className}`}>
+        <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium ${badgeContent.className}`}>
           {badgeContent.text}
         </div>
       )}
@@ -206,6 +210,10 @@ export default function ServiceCard({
           src={service.thumbnail}
           alt={service.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
+          }}
         />
         
         {/* Favorite Button */}
