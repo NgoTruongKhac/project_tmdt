@@ -1,4 +1,4 @@
-import { Search, Sparkles, TrendingUp, Star } from "lucide-react";
+import { Search } from "lucide-react";
 
 export default function HeroSection() {
   return (
@@ -14,7 +14,6 @@ export default function HeroSection() {
         <div className="text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-primary-600 font-medium text-sm mb-6 shadow-soft">
-            <Sparkles className="w-4 h-4" />
             Thiết kế chuyên nghiệp, giá cả hợp lý
           </div>
 
@@ -53,23 +52,14 @@ export default function HeroSection() {
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-xl mb-3">
-                <TrendingUp className="w-6 h-6 text-primary-600" />
-              </div>
               <div className="text-2xl font-bold text-neutral-800 mb-1">1000+</div>
               <div className="text-neutral-600">Mẫu thiết kế</div>
             </div>
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mb-3">
-                <Star className="w-6 h-6 text-green-600" />
-              </div>
               <div className="text-2xl font-bold text-neutral-800 mb-1">50K+</div>
               <div className="text-neutral-600">Khách hàng hài lòng</div>
             </div>
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-xl mb-3">
-                <Sparkles className="w-6 h-6 text-purple-600" />
-              </div>
               <div className="text-2xl font-bold text-neutral-800 mb-1">24/7</div>
               <div className="text-neutral-600">Hỗ trợ khách hàng</div>
             </div>
