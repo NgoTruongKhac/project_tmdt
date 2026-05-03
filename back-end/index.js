@@ -5,6 +5,7 @@ import { SESSION_KEY } from "./src/configs/env.js";
 import { connectDB } from "./src/databases/mongodb.js";
 import { authRouter } from "./src/routes/auth.route.js";
 import { userRouter } from "./src/routes/user.route.js";
+import searchRouter from "./src/routes/search.route.js";
 import { errorHandler } from "./src/middlewares/errors/error.middleware.js";
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -38,6 +39,7 @@ app.use(passport.session()); // <-- Sử dụng session với Passport
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/search", searchRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
