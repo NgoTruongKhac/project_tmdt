@@ -1,6 +1,6 @@
 import type { ServicePackage } from "@/api/serviceApi";
 import { formatCurrency, formatDate } from "@/utils/format";
-import { Eye, ShoppingCart } from "lucide-react";
+import { Eye, ShoppingCart, Clock } from "lucide-react";
 import FavoriteButton from "@/components/common/FavoriteButton";
 import { useToast } from "@/hooks/useToast";
 
@@ -18,6 +18,9 @@ export default function ServiceCard({
   badgeType = "bestseller"
 }: ServiceCardProps) {
   const { showToast } = useToast();
+  
+  const getAvatarUrl = (fullName: string, profilePicture?: string) =>
+    profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
   
   const getBadgeContent = () => {
     switch (badgeType) {
@@ -86,6 +89,18 @@ export default function ServiceCard({
             <p className="text-neutral-600 text-sm line-clamp-2">
               {service.description}
             </p>
+            
+            {/* Designer Info */}
+            {service.designer && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-neutral-600">
+                <img
+                  src={getAvatarUrl(service.designer.fullName, service.designer.profilePicture)}
+                  alt={service.designer.fullName}
+                  className="h-5 w-5 rounded-full object-cover"
+                />
+                <span className="font-medium">{service.designer.fullName}</span>
+              </div>
+            )}
           </div>
 
           {/* Price */}
@@ -112,7 +127,10 @@ export default function ServiceCard({
               <ShoppingCart className="w-4 h-4" />
               {service.soldCount} đã bán
             </span>
-            <span>{formatDate(service.createdAt)}</span>
+            <span className="flex items-center gap-1 text-xs text-neutral-400">
+              <Clock className="w-3 h-3" />
+              {formatDate(service.createdAt)}
+            </span>
           </div>
 
           {/* CTA Button */}
@@ -164,6 +182,18 @@ export default function ServiceCard({
             <p className="text-neutral-600 text-sm line-clamp-2">
               {service.description}
             </p>
+            
+            {/* Designer Info */}
+            {service.designer && (
+              <div className="mt-2 flex items-center gap-2 text-xs text-neutral-600">
+                <img
+                  src={getAvatarUrl(service.designer.fullName, service.designer.profilePicture)}
+                  alt={service.designer.fullName}
+                  className="h-4 w-4 rounded-full object-cover"
+                />
+                <span className="font-medium">{service.designer.fullName}</span>
+              </div>
+            )}
           </div>
 
           {/* Price */}
@@ -187,7 +217,10 @@ export default function ServiceCard({
           {/* Stats */}
           <div className="flex items-center justify-between text-xs text-neutral-500">
             <span>{service.soldCount} đã bán</span>
-            <span>{formatDate(service.createdAt)}</span>
+            <span className="flex items-center gap-1 text-xs text-neutral-400">
+              <Clock className="w-3 h-3" />
+              {formatDate(service.createdAt)}
+            </span>
           </div>
         </div>
       </div>
@@ -236,6 +269,18 @@ export default function ServiceCard({
           <p className="text-neutral-600 text-sm line-clamp-2">
             {service.description}
           </p>
+          
+          {/* Designer Info */}
+          {service.designer && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
+              <img
+                src={getAvatarUrl(service.designer.fullName, service.designer.profilePicture)}
+                alt={service.designer.fullName}
+                className="h-5 w-5 rounded-full object-cover"
+              />
+              <span className="font-medium">{service.designer.fullName}</span>
+            </div>
+          )}
         </div>
 
         {/* Price */}
@@ -262,7 +307,10 @@ export default function ServiceCard({
             <ShoppingCart className="w-4 h-4" />
             {service.soldCount}
           </span>
-          <span>{formatDate(service.createdAt)}</span>
+          <span className="flex items-center gap-1 text-xs text-neutral-400">
+            <Clock className="w-3 h-3" />
+            {formatDate(service.createdAt)}
+          </span>
         </div>
 
         {/* CTA Button */}

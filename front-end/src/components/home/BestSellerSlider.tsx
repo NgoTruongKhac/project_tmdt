@@ -66,32 +66,29 @@ export default function BestSellerSlider() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <SectionTitle 
-            title="Gói Bán Chạy" 
-            subtitle="Những gói thiết kế được yêu thích nhất"
-            className="text-left mb-0"
-          />
-          
-          {!loading && services.length > 4 && (
-            <div className="flex gap-2">
-              <button
-                onClick={prevSlide}
-                className="p-2 rounded-full bg-white shadow-soft hover:shadow-lg border border-neutral-200 hover:border-primary-300 transition-all duration-200"
-                disabled={currentIndex === 0}
-              >
-                <ChevronLeft className="w-5 h-5 text-neutral-600" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="p-2 rounded-full bg-white shadow-soft hover:shadow-lg border border-neutral-200 hover:border-primary-300 transition-all duration-200"
-                disabled={currentIndex + 4 >= services.length}
-              >
-                <ChevronRight className="w-5 h-5 text-neutral-600" />
-              </button>
-            </div>
-          )}
-        </div>
+        <SectionTitle 
+          title="Gói Bán Chạy" 
+          subtitle="Những gói thiết kế được yêu thích nhất"
+        />
+        
+        {!loading && services.length > 4 && (
+          <div className="flex justify-center gap-2 mb-8">
+            <button
+              onClick={prevSlide}
+              className="p-2 rounded-full bg-white shadow-soft hover:shadow-lg border border-neutral-200 hover:border-primary-300 transition-all duration-200"
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft className="w-5 h-5 text-neutral-600" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="p-2 rounded-full bg-white shadow-soft hover:shadow-lg border border-neutral-200 hover:border-primary-300 transition-all duration-200"
+              disabled={currentIndex + 4 >= services.length}
+            >
+              <ChevronRight className="w-5 h-5 text-neutral-600" />
+            </button>
+          </div>
+        )}
         
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

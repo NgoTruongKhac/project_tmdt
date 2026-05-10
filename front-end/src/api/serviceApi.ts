@@ -15,6 +15,11 @@ export interface ServicePackage {
   soldCount: number;
   createdAt: string;
   updatedAt: string;
+  designer?: {
+    _id: string;
+    fullName: string;
+    profilePicture?: string;
+  };
 }
 
 export interface ServiceResponse {
