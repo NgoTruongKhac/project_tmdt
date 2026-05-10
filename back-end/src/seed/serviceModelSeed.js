@@ -135,10 +135,10 @@ const sampleServices = [
 export const seedServices = async () => {
   try {
     await connectDB();
-    
+
     // Tìm một user để làm designer (hoặc tạo user mẫu)
     let designer = await User.findOne({ role: "designer" });
-    
+
     if (!designer) {
       // Tạo user designer mẫu nếu chưa có
       designer = await User.create({
@@ -151,7 +151,7 @@ export const seedServices = async () => {
       });
       console.log("Đã tạo designer mẫu");
     }
-    
+
     // Xóa dữ liệu cũ
     await Service.deleteMany({});
     console.log("Đã xóa dữ liệu Service cũ");
@@ -161,11 +161,11 @@ export const seedServices = async () => {
       ...service,
       designerId: designer._id
     }));
-    
+
     await Service.insertMany(servicesData);
-    
+
     console.log(`Đã tạo ${servicesData.length} services mẫu thành công!`);
-    
+
     // Hiển thị thống kê
     const stats = {
       total: await Service.countDocuments(),
@@ -173,25 +173,23 @@ export const seedServices = async () => {
         { $group: { _id: "$category", count: { $sum: 1 } } }
       ])
     };
-    
+
     console.log("Thống kê dữ liệu Service:");
     console.log(`- Tổng số services: ${stats.total}`);
     console.log("- Theo category:");
     stats.byCategory.forEach(cat => {
       console.log(`  + ${cat._id}: ${cat.count}`);
     });
-    
+
   } catch (error) {
     console.error("Lỗi khi seed dữ liệu Service:", error);
   }
 };
 
 // Chạy seed nếu file được gọi trực tiếp
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedServices().then(() => {
-    process.exit(0);
-  }).catch((error) => {
-    console.error("Error running seed:", error);
-    process.exit(1);
-  });
-}
+seedServices().then(() => {
+  process.exit(0);
+}).catch((error) => {
+  console.error("Error running seed:", error);
+  process.exit(1);
+});
