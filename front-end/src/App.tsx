@@ -12,6 +12,7 @@ import { useToast } from "./hooks/useToast";
 import { ToastContainer } from "./components/common/Toast";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminServices from "./pages/admin/AdminServices";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -35,7 +36,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<div>Trang Tổng quan Admin</div>} />
           <Route path="users" element={<AdminUsers />} />
-          <Route path="services" element={<div>Trang Quản lý Dịch vụ</div>} />
+          <Route path="services" element={<AdminServices />} />
         </Route>
       </Routes>
 

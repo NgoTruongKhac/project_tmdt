@@ -46,6 +46,7 @@ export const searchServices = async (req, res) => {
         const { keyword, category, minPrice, maxPrice } = req.query;
 
         const searchFilter = {};
+        searchFilter.status = "approved";
 
         if (keyword) {
             const keywords = keyword.split(/\s+/);
