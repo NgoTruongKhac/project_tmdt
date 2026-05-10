@@ -10,6 +10,8 @@ import AuthGoogle from "./pages/AuthGoogle";
 import { FavoriteProvider } from "./contexts/FavoriteContext";
 import { useToast } from "./hooks/useToast";
 import { ToastContainer } from "./components/common/Toast";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -29,8 +31,14 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth-google" element={<AuthGoogle />} />
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<div>Trang Tổng quan Admin</div>} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="services" element={<div>Trang Quản lý Dịch vụ</div>} />
+        </Route>
       </Routes>
-      
+
       {/* Toast Container */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </FavoriteProvider>
