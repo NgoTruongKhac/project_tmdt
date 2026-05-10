@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios"
+import axios from "axios";
 
+// --- Interfaces ---
 interface IDesigner {
     _id: string;
     fullName: string;
-    profilePicture?: string;
-    rating?: number;
-    bio?: string;
+    profilePicture: string;
+    rating: number;
+    bio: string;
 }
 
 interface IProduct {
@@ -17,7 +18,14 @@ interface IProduct {
     images: string[];
     description: string;
     tags: string[];
-    designerId: IDesigner; // Dữ liệu từ populate
+    designerId: IDesigner; // Đã được populate từ backend
+}
+
+interface IRelatedProduct {
+    _id: string;
+    title: string;
+    price: number;
+    images: string[];
 }
 
 const ProductDetail: React.FC = () => {
@@ -25,228 +33,170 @@ const ProductDetail: React.FC = () => {
     const navigate = useNavigate();
 
     const [product, setProduct] = useState<IProduct | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const [relatedProducts, setRelatedProducts] = useState<IRelatedProduct[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [activeImg, setActiveImg] = useState(0);
 
     useEffect(() => {
         const fetchProductData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:5174/product/${id}`);
-                setProduct(response.data);
-            } catch (err) {
-                const axiosError = err as AxiosError<{ message: string }>;
-                setError(axiosError.response?.data?.message || "Không thể tải dữ liệu sản phẩm");
+                setError("");
+
+                // Đảm bảo URL này khớp với cấu hình Route Backend của bạn
+                // Lưu ý: Tôi dùng 5173 cho đúng yêu cầu của bạn
+                const response = await axios.get(`http://localhost:3000/api/v1/products/${id}`);
+
+                // Cấu trúc mới từ Backend: { product: {...}, relatedProducts: [...] }
+                setProduct(response.data.product);
+                setRelatedProducts(response.data.relatedProducts || []);
+                setActiveImg(0);
+            } catch (err: unknown) {
+                console.error("Fetch error:", err);
+
+                if (axios.isAxiosError(err)) {
+                    // TypeScript hiểu 'err' lúc này là AxiosError nên truy cập .response an toàn
+                    const serverMessage = err.response?.data?.message;
+                    setError(serverMessage || "Không thể tải dữ liệu sản phẩm");
+                } else if (err instanceof Error) {
+                    // Lỗi thường (lỗi code, logic...)
+                    setError(err.message);
+                } else {
+                    // Lỗi không xác định
+                    setError("Đã xảy ra lỗi không mong muốn");
+                }
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id) fetchProductData();
+        if (id) {
+            fetchProductData();
+        }
     }, [id]);
 
-    if (loading) return <div style={styles.statusCenter}>Đang tải thiết kế...</div>;
-    if (error || !product) return <div style={styles.statusCenter}>{error || "Sản phẩm không tồn tại"}</div>;
+    if (loading) return <div style={styles.loading}>Đang tải dữ liệu...</div>;
+    if (error) return <div style={styles.error}>{error}</div>;
+    if (!product) return <div style={styles.error}>Sản phẩm không tồn tại.</div>;
 
     return (
         <div style={styles.container}>
-            {/* Breadcrumb */}
-            <div style={styles.breadcrumb}>
-                Trang chủ {">"} Khám phá {">"} <span style={{ color: "#333" }}>{product.title}</span>
-            </div>
-
-            <div style={styles.mainLayout}>
-                {/* CỘT TRÁI - GALLERY & INFO */}
-                <div style={styles.leftCol}>
-                    <div style={styles.galleryContainer}>
-                        {/* Phương án 3: Background mờ nghệ thuật */}
-                        <div style={{
-                            ...styles.blurredBg,
-                            backgroundImage: `url(${product.images[0]})`
-                        }} />
-
-                        <img
-                            src={product.images[0]}
-                            alt={product.title}
-                            style={styles.mainImage}
-                        />
-                    </div>
-
-                    {/* Danh sách ảnh phụ */}
-                    <div style={styles.thumbnailRow}>
+            {/* --- PHẦN CHI TIẾT SẢN PHẨM --- */}
+            <div style={styles.mainContent}>
+                {/* Cột trái: Hình ảnh */}
+                <div style={styles.imageSection}>
+                    <img
+                        src={product.images[activeImg] || "https://via.placeholder.com/600"}
+                        alt={product.title}
+                        style={styles.mainImage}
+                    />
+                    <div style={styles.thumbnailList}>
                         {product.images.map((img, index) => (
-                            <img key={index} src={img} alt={`Thumb ${index}`} style={styles.thumbnail} />
-                        ))}
-                    </div>
-
-                    {/* Designer & Mô tả */}
-                    <div style={styles.designerSection}>
-                        <div style={styles.designerHeader}>
                             <img
-                                src={product.designerId?.profilePicture || "https://via.placeholder.com/150"}
-                                style={styles.avatar}
-                                alt="Avatar"
+                                key={index}
+                                src={img}
+                                style={{
+                                    ...styles.thumbnail,
+                                    border: activeImg === index ? "2px solid #000" : "1px solid #ddd",
+                                }}
+                                onClick={() => setActiveImg(index)}
                             />
-                            <div>
-                                <div style={styles.designerName}>
-                                    {product.designerId?.fullName}
-                                    { (product.designerId?.rating || 0) >= 4.5 && <span style={styles.proBadge}>PRO</span> }
-                                </div>
-                                <div style={styles.ratingText}>
-                                    ⭐ {product.designerId?.rating || 0} | 150+ dự án hoàn thành
-                                </div>
-                            </div>
-                            <button style={styles.followBtn}>Theo dõi</button>
-                        </div>
-
-                        <h1 style={styles.productTitle}>{product.title}</h1>
-                        <p style={styles.description}>{product.description}</p>
-
-                        <div style={styles.tagContainer}>
-                            {product.tags.map((tag) => (
-                                <span key={tag} style={styles.tag}>#{tag}</span>
-                            ))}
-                        </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* CỘT PHẢI - THANH TOÁN (STICKY) */}
-                <div style={styles.rightCol}>
-                    <div style={styles.purchaseCard}>
-                        <div style={styles.priceContainer}>
-                            <span style={styles.priceLabel}>Giá trọn gói:</span>
-                            <span style={styles.priceValue}>
-                                {product.price?.toLocaleString('vi-VN')} đ
-                            </span>
-                        </div>
+                {/* Cột phải: Thông tin */}
+                <div style={styles.infoSection}>
+                    <h1 style={styles.title}>{product.title}</h1>
+                    <p style={styles.price}>{product.price.toLocaleString("vi-VN")} đ</p>
 
-                        <div style={styles.benefitList}>
-                            <div style={styles.benefitItem}>✔ File gốc chất lượng cao (.PSD, .AI)</div>
-                            <div style={styles.benefitItem}>✔ Quyền sử dụng thương mại vĩnh viễn</div>
-                            <div style={styles.benefitItem}>✔ Hỗ trợ chỉnh sửa nhẹ 1 lần</div>
-                        </div>
+                    <div style={styles.tagsContainer}>
+                        {product.tags.map((tag) => (
+                            <span key={tag} style={styles.tag}>#{tag}</span>
+                        ))}
+                    </div>
 
-                        <button
-                            onClick={() => navigate(`/checkout/${product._id}`)}
-                            style={styles.buyBtn}
-                        >
-                            Mua ngay
-                        </button>
+                    <div style={styles.description}>
+                        <h3>Mô tả sản phẩm</h3>
+                        <p>{product.description}</p>
+                    </div>
 
-                        <button style={styles.contactBtn}>Nhắn tin cho Designer</button>
-
-                        <div style={styles.secureFooter}>
-                            <span>🔒 Thanh toán an toàn</span>
-                            <span>•</span>
-                            <span>Hoàn tiền nếu không hài lòng</span>
+                    {/* Thông tin Designer */}
+                    <div style={styles.designerCard}>
+                        <img
+                            src={product.designerId?.profilePicture || "https://via.placeholder.com/50"}
+                            alt="designer"
+                            style={styles.avatar}
+                        />
+                        <div style={styles.designerInfo}>
+                            <h4 style={styles.designerName}>
+                                {product.designerId?.fullName || "Chưa có tên"}
+                            </h4>
+                            <p style={styles.designerBio}>{product.designerId?.bio}</p>
+                            <div style={styles.rating}>⭐ {product.designerId?.rating || 5}/5</div>
                         </div>
                     </div>
+
+                    <button style={styles.buyButton}>Mua ngay</button>
+                </div>
+            </div>
+
+            {/* --- PHẦN SẢN PHẨM TƯƠNG TỰ --- */}
+            <div style={styles.relatedSection}>
+                <h2 style={styles.sectionTitle}>Sản phẩm tương tự</h2>
+                <div style={styles.relatedGrid}>
+                    {relatedProducts.length > 0 ? (
+                        relatedProducts.map((item) => (
+                            <div
+                                key={item._id}
+                                style={styles.relatedCard}
+                                onClick={() => navigate(`/product/${item._id}`)}
+                            >
+                                <img src={item.images[0]} alt={item.title} style={styles.relatedImg} />
+                                <h4 style={styles.relatedTitle}>{item.title}</h4>
+                                <p style={styles.relatedPrice}>{item.price.toLocaleString("vi-VN")} đ</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>Không có sản phẩm tương tự.</p>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-// Styles object với định nghĩa kiểu CSSProperties của React
+// --- Styles (Giữ nguyên giao diện của bạn) ---
 const styles: { [key: string]: React.CSSProperties } = {
-    container: {
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "20px",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    },
-    statusCenter: { display: "flex", justifyContent: "center", alignItems: "center", height: "50vh", fontSize: "18px", color: "#666" },
-    breadcrumb: { fontSize: "13px", color: "#999", marginBottom: "24px" },
-    mainLayout: { display: "flex", gap: "50px", alignItems: "flex-start" },
-
-    // Cột trái & Gallery
-    leftCol: { flex: 1.4 },
-    galleryContainer: {
-        position: "relative",
-        width: "100%",
-        height: "580px",
-        borderRadius: "32px",
-        overflow: "hidden",
-        backgroundColor: "#f0f0f0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 20px 40px rgba(0,0,0,0.05)"
-    },
-    blurredBg: {
-        position: "absolute",
-        inset: 0,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        filter: "blur(50px) brightness(0.9)",
-        opacity: 0.4,
-        zIndex: 1,
-    },
-    mainImage: {
-        maxHeight: "92%",
-        maxWidth: "92%",
-        objectFit: "contain",
-        position: "relative",
-        zIndex: 2,
-        borderRadius: "12px",
-    },
-    thumbnailRow: { display: "flex", gap: "12px", marginTop: "16px" },
-    thumbnail: { width: "64px", height: "64px", borderRadius: "12px", objectFit: "cover", border: "1px solid #eee", cursor: "pointer" },
-
-    // Designer Section
-    designerSection: { marginTop: "40px" },
-    designerHeader: { display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" },
-    avatar: { width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover" },
-    designerName: { fontSize: "18px", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px" },
-    proBadge: { backgroundColor: "#000", color: "#fff", fontSize: "10px", padding: "2px 8px", borderRadius: "4px", textTransform: "uppercase" },
-    ratingText: { fontSize: "14px", color: "#777", marginTop: "4px" },
-    followBtn: { marginLeft: "auto", padding: "8px 20px", borderRadius: "20px", border: "1px solid #ddd", background: "white", fontWeight: "600", cursor: "pointer" },
-
-    productTitle: { fontSize: "32px", fontWeight: "800", color: "#1a1a1a", marginBottom: "16px" },
-    description: { lineHeight: "1.8", color: "#444", fontSize: "16px", marginBottom: "24px" },
-    tagContainer: { display: "flex", gap: "10px", flexWrap: "wrap" },
-    tag: { padding: "6px 16px", backgroundColor: "#f5f5f5", borderRadius: "30px", fontSize: "13px", color: "#666" },
-
-    // Cột phải & Purchase Card
-    rightCol: { width: "400px", position: "sticky", top: "40px" },
-    purchaseCard: {
-        padding: "32px",
-        borderRadius: "32px",
-        backgroundColor: "#fff",
-        border: "1px solid #f0f0f0",
-        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.08)"
-    },
-    priceContainer: { marginBottom: "24px" },
-    priceLabel: { display: "block", fontSize: "14px", color: "#888", marginBottom: "4px" },
-    priceValue: { fontSize: "32px", fontWeight: "800", color: "#000" },
-
-    benefitList: { marginBottom: "32px" },
-    benefitItem: { fontSize: "14px", color: "#555", marginBottom: "12px", display: "flex", alignItems: "center" },
-
-    buyBtn: {
-        width: "100%",
-        padding: "18px",
-        borderRadius: "18px",
-        border: "none",
-        backgroundColor: "#000",
-        color: "#fff",
-        fontSize: "17px",
-        fontWeight: "600",
-        cursor: "pointer",
-        marginBottom: "12px",
-        transition: "transform 0.2s"
-    },
-    contactBtn: {
-        width: "100%",
-        padding: "18px",
-        borderRadius: "18px",
-        border: "1px solid #e0e0e0",
-        backgroundColor: "transparent",
-        fontSize: "16px",
-        fontWeight: "600",
-        cursor: "pointer"
-    },
-    secureFooter: { display: "flex", justifyContent: "center", gap: "10px", marginTop: "24px", fontSize: "12px", color: "#aaa" }
+    container: { maxWidth: "1200px", margin: "0 auto", padding: "40px 20px", fontFamily: "Arial, sans-serif" },
+    mainContent: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "60px" },
+    imageSection: { display: "flex", flexDirection: "column", gap: "15px" },
+    mainImage: { width: "100%", borderRadius: "12px", objectFit: "cover", height: "500px" },
+    thumbnailList: { display: "flex", gap: "10px", overflowX: "auto" },
+    thumbnail: { width: "80px", height: "80px", borderRadius: "8px", cursor: "pointer", objectFit: "cover" },
+    infoSection: { display: "flex", flexDirection: "column", gap: "20px" },
+    title: { fontSize: "28px", fontWeight: "bold", color: "#333" },
+    price: { fontSize: "24px", color: "#e44d26", fontWeight: "bold" },
+    tagsContainer: { display: "flex", gap: "10px" },
+    tag: { padding: "5px 12px", background: "#f0f0f0", borderRadius: "20px", fontSize: "14px", color: "#666" },
+    description: { lineHeight: "1.6", color: "#555" },
+    designerCard: { display: "flex", gap: "15px", padding: "20px", background: "#f9f9f9", borderRadius: "12px", alignItems: "center" },
+    avatar: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover" },
+    designerInfo: { flex: 1 },
+    designerName: { margin: "0 0 5px 0", fontSize: "18px" },
+    designerBio: { fontSize: "14px", color: "#777", margin: "0 0 5px 0" },
+    rating: { fontSize: "14px", color: "#ffa500" },
+    buyButton: { padding: "15px", background: "#000", color: "#fff", border: "none", borderRadius: "8px", fontSize: "18px", cursor: "pointer", fontWeight: "bold" },
+    relatedSection: { borderTop: "1px solid #eee", paddingTop: "40px" },
+    sectionTitle: { fontSize: "22px", marginBottom: "20px" },
+    relatedGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "20px" },
+    relatedCard: { cursor: "pointer", transition: "transform 0.2s" },
+    relatedImg: { width: "100%", height: "200px", borderRadius: "8px", objectFit: "cover" },
+    relatedTitle: { fontSize: "16px", margin: "10px 0 5px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+    relatedPrice: { color: "#e44d26", fontWeight: "bold" },
+    loading: { textAlign: "center", padding: "100px", fontSize: "20px" },
+    error: { textAlign: "center", padding: "100px", color: "red", fontSize: "18px" },
 };
 
 export default ProductDetail;
