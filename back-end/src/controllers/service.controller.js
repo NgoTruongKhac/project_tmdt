@@ -1,4 +1,4 @@
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Lấy tất cả gói dịch vụ với phân trang
