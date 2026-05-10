@@ -1,18 +1,8 @@
 import express from "express";
-import Product from "../models/product.model.js";
+import { getProductDetail } from "../controllers/product.controller.js";
 
 const router = express.Router();
 
-// Lấy chi tiết sản phẩm
-router.get("/:id", async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id)
-            .populate("designer", "name");
-
-        res.json(product);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.get("/:id", getProductDetail);
 
 export default router;

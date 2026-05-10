@@ -11,6 +11,8 @@ import session from "express-session";
 import cors from "cors";
 import passport from "passport";
 import "./src/configs/passport.config.js";
+import orderRoute from "./src/routes/order.route.js";
+import productRoute from "./src/routes/product.route.js";
 
 const app = express();
 
@@ -44,7 +46,14 @@ app.get("/", (req, res) => {
 });
 
 app.use(errorHandler);
+app.use("/api/orders", orderRoute);
+app.use("/api/products", productRoute);
+
+
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
+
