@@ -1,5 +1,5 @@
-import { Favorite } from "../models/Favorite.js";
-import { ServicePackage } from "../models/ServicePackage.js";
+import { Favorite } from "../models/favorite.model.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
 

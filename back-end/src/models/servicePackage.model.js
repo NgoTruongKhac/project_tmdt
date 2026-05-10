@@ -44,6 +44,11 @@ const ServicePackageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    designer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     isBestSeller: {
       type: Boolean,
       default: false,
