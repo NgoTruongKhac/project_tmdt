@@ -70,7 +70,7 @@ export const searchServices = async (req, res) => {
 
         const services = await Service.find(searchFilter)
             .populate("designerId", "fullName profilePicture")
-            .sort({ createdAt: -1 })
+            .sort({ price: 1, title: 1 })
             .limit(100);
 
         // Transform data để match với frontend interface
