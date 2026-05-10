@@ -37,15 +37,8 @@ authRouter.get(
     session: false, // Không dùng session của passport, chúng ta sẽ dùng JWT
   }),
   (req, res) => {
-    // req.user được tạo bởi Passport (từ hàm done(null, user) trong passport.config.js)
-    // Tại đây, xác thực đã thành công.
-    // Chúng ta sẽ tạo JWT token và gửi về cho client.
-
     const accessToken = generateAccessToken(req.user._id);
     const refreshToken = generateRefreshToken(req.user._id);
-
-    // Chuyển hướng về client với token đính kèm trên URL
-    // Client sẽ lấy token này từ URL và lưu lại
     res.redirect(
       `${CLIENT_DOMAIN}/auth-google?accessToken=${accessToken}&refreshToken=${refreshToken}`,
     );

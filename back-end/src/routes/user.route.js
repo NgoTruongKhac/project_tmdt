@@ -2,6 +2,7 @@ import {
   getMe,
   updateProfilePicture,
   updateProfile,
+  transferRoleDesigner,
 } from "../controllers/user.controller.js";
 import { Router } from "express";
 import { verifyToken } from "../middlewares/auth/auth.middleware.js";
@@ -16,3 +17,4 @@ userRouter.post(
   upload.single("profilePicture"),
   updateProfilePicture,
 );
+userRouter.post("/transfer-role-designer", verifyToken, transferRoleDesigner);
