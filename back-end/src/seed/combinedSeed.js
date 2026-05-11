@@ -363,12 +363,10 @@ export const seedCombinedServices = async () => {
   }
 };
 
-// Chạy seed nếu file được gọi trực tiếp
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedCombinedServices().then(() => {
-    process.exit(0);
-  }).catch((error) => {
-    console.error("Error running seed:", error);
-    process.exit(1);
-  });
-}
+// Gọi trực tiếp hàm chạy luôn không cần check điều kiện nữa
+seedCombinedServices().then(() => {
+  process.exit(0);
+}).catch((error) => {
+  console.error("Error running seed:", error);
+  process.exit(1);
+});

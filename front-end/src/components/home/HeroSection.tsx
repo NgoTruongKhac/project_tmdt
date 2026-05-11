@@ -39,7 +39,7 @@ export default function HeroSection({
   handleClearSearch
 }: HeroSectionProps) {
   return (
-    <section className="relative bg-gradient-to-br from-primary-50 via-white to-primary-100 py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-primary-50 via-white to-primary-100 py-20 px-4 sm:px-6 lg:px-8">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
@@ -65,7 +65,7 @@ export default function HeroSection({
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-neutral-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Tìm kiếm và khám phá hàng nghìn mẫu thiết kế poster, banner chuyên nghiệp. 
+            Tìm kiếm và khám phá hàng nghìn mẫu thiết kế poster, banner chuyên nghiệp.
             Từ sự kiện, kinh doanh đến social media - tất cả đều có tại đây.
           </p>
 
@@ -78,11 +78,10 @@ export default function HeroSection({
                 <div className="relative">
                   <button
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className={`flex items-center gap-2 px-4 py-4 rounded-2xl border transition-colors ${
-                      isFilterOpen 
-                        ? 'border-primary-500 bg-primary-50 text-primary-600' 
+                    className={`flex items-center gap-2 px-4 py-4 rounded-2xl border transition-colors ${isFilterOpen
+                        ? 'border-primary-500 bg-primary-50 text-primary-600'
                         : 'border-neutral-200 bg-white/90 backdrop-blur-sm text-neutral-700 hover:bg-white'
-                    }`}
+                      }`}
                   >
                     <SlidersHorizontal className="h-5 w-5" />
                     <span className="text-sm font-medium hidden sm:inline">Bộ lọc</span>
@@ -92,13 +91,13 @@ export default function HeroSection({
                   {isFilterOpen && (
                     <>
                       {/* Backdrop */}
-                      <div 
-                        className="fixed inset-0 z-[9998]" 
+                      <div
+                        className="fixed inset-0 z-[9998]"
                         onClick={() => setIsFilterOpen(false)}
                       />
-                      
+
                       {/* Dropdown */}
-                      <div className="absolute left-0 top-full z-[9999] mt-2 w-80 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
+                      <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
                         <div className="mb-4">
                           <div className="mb-3 flex items-center justify-between">
                             <label className="text-sm font-semibold text-neutral-900">Khoảng giá</label>
@@ -186,7 +185,7 @@ export default function HeroSection({
                 </div>
 
                 {/* Search Button */}
-                <button 
+                <button
                   onClick={onSearch}
                   className="px-6 py-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-2xl transition-colors shadow-soft"
                 >
@@ -207,14 +206,14 @@ export default function HeroSection({
                       : 'bg-white/80 backdrop-blur-sm text-neutral-700 hover:bg-white border border-neutral-200'
                       }`}
                   >
-                    {category === 'Tất cả' ? 'Tất cả' : 
-                     category === 'poster' ? 'Poster' :
-                     category === 'banner' ? 'Banner' :
-                     category === 'social-media' ? 'Social Media' :
-                     category === 'business' ? 'Business' :
-                     category === 'event' ? 'Event' :
-                     category === 'combo' ? 'Combo' :
-                     category === 'other' ? 'Khác' : category}
+                    {category === 'Tất cả' ? 'Tất cả' :
+                      category === 'poster' ? 'Poster' :
+                        category === 'banner' ? 'Banner' :
+                          category === 'social-media' ? 'Social Media' :
+                            category === 'business' ? 'Business' :
+                              category === 'event' ? 'Event' :
+                                category === 'combo' ? 'Combo' :
+                                  category === 'other' ? 'Khác' : category}
                   </button>
                 ))}
               </div>

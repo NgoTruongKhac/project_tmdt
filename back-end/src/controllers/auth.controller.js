@@ -85,6 +85,14 @@ export const login = async (req, res, next) => {
       throw new ErrorHandler("user does not exist", 401);
     }
 
+    // Kiểm tra nếu tài khoản bị khóa
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản của bạn đã bị khóa do vi phạm chính sách. Vui lòng liên hệ quản trị viên.",
+      });
+    }
+
     const isMatch = await brcypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -100,6 +108,14 @@ export const login = async (req, res, next) => {
       message: "Login successful",
       accessToken,
       refreshToken,
+      user: {
+        userId: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        role: user.role,       
+        isActive: user.isActive  
+      }
     });
   } catch (error) {
     next(error);

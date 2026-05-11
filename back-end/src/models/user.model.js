@@ -10,6 +10,7 @@ const UserCheSchema = new mongoose.Schema(
       enum: ["customer", "designer", "admin"],
       default: "customer",
     },
+    isActive: { type: Boolean, default: true },
     googleId: { type: String, unique: true, sparse: true },
     profilePicture: { type: String, default: "" },
     skills: { type: [String], default: [] },

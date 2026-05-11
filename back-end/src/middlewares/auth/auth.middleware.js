@@ -1,6 +1,7 @@
 import ErrorHandler from "../errors/ErrorHandler.js";
 import jwt from "jsonwebtoken";
 import { JWT_KEY } from "../../configs/env.js";
+import { User } from "../../models/user.model.js";
 
 export const verifyToken = (req, res, next) => {
   try {
@@ -24,6 +25,23 @@ export const verifyToken = (req, res, next) => {
       req.userId = decoded.userId;
       next();
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user || user.role !== "admin") {
+      return next(
+        new ErrorHandler("Truy cập bị từ chối. Chỉ dành cho Quản trị viên", 403)
+      );
+    }
+    
+    req.user = user; 
+    next();
   } catch (error) {
     next(error);
   }
