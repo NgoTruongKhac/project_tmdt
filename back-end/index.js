@@ -14,6 +14,7 @@ import session from "express-session";
 import cors from "cors";
 import passport from "passport";
 import "./src/configs/passport.config.js";
+import adminRoutes from "./src/routes/admin.route.js";
 import productRouter from "./src/routes/product.route.js";
 
 const app = express();
@@ -45,6 +46,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/services", serviceRouter);
 app.use("/api/v1/favorites", favoriteRouter);
 app.use("/api/v1/search", searchRouter);
+app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/products", productRouter);
 app.use('/uploads', express.static('public/uploads'));
 

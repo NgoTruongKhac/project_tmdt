@@ -16,10 +16,30 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const existUser = await User.findOne({ googleId: profile.id });
+        // Tìm user theo email trước để tránh lỗi E11000
+        let user = await User.findOne({ email: profile._json.email });
 
-        if (existUser) return done(null, existUser);
+        if (user) {
+          // Kiểm tra nếu tài khoản bị khóa
+          if (!user.isActive) {
+            return done(
+              new Error(
+                "Tài khoản của bạn đã bị khóa do vi phạm chính sách. Vui lòng liên hệ quản trị viên."
+              ),
+              null
+            );
+          }
 
+          // Cập nhật googleId nếu chưa có
+          if (!user.googleId) {
+            user.googleId = profile.id;
+            await user.save();
+          }
+
+          return done(null, user);
+        }
+
+        // Nếu user không tồn tại, tạo mới
         const newUser = new User({
           fullName: profile.displayName,
           email: profile._json.email,

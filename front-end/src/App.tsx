@@ -10,6 +10,9 @@ import AuthGoogle from "./pages/AuthGoogle";
 import { FavoriteProvider } from "./contexts/FavoriteContext";
 import { useToast } from "./hooks/useToast";
 import { ToastContainer } from "./components/common/Toast";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminServices from "./pages/admin/AdminServices";
 import ProductDetail from "./pages/ProductDetail";
 import Order from "./pages/Order";;
 
@@ -33,6 +36,12 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth-google" element={<AuthGoogle />} />
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<div>Trang Tổng quan Admin</div>} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="services" element={<AdminServices />} />
+        </Route>
       </Routes>
 
       {/* Toast Container */}
