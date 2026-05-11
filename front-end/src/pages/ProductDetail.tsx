@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// --- Interfaces ---
 interface IDesigner {
     _id: string;
     fullName: string;
     profilePicture: string;
     rating: number;
-    bio: string;
 }
 
 interface IProduct {
@@ -18,7 +16,7 @@ interface IProduct {
     images: string[];
     description: string;
     tags: string[];
-    designerId: IDesigner; // Đã được populate từ backend
+    designerId: IDesigner;
 }
 
 interface IRelatedProduct {
@@ -31,172 +29,196 @@ interface IRelatedProduct {
 const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
     const [product, setProduct] = useState<IProduct | null>(null);
     const [relatedProducts, setRelatedProducts] = useState<IRelatedProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeImg, setActiveImg] = useState(0);
 
+    // Cấu hình URL cơ sở của Backend
+    const API_IMAGE_URL = "http://localhost:3000/api/v1/products/image";
+
     useEffect(() => {
         const fetchProductData = async () => {
             try {
                 setLoading(true);
-                setError("");
-
-                // Đảm bảo URL này khớp với cấu hình Route Backend của bạn
-                // Lưu ý: Tôi dùng 5173 cho đúng yêu cầu của bạn
                 const response = await axios.get(`http://localhost:3000/api/v1/products/${id}`);
-
-                // Cấu trúc mới từ Backend: { product: {...}, relatedProducts: [...] }
                 setProduct(response.data.product);
                 setRelatedProducts(response.data.relatedProducts || []);
                 setActiveImg(0);
-            } catch (err: unknown) {
-                console.error("Fetch error:", err);
-
-                if (axios.isAxiosError(err)) {
-                    // TypeScript hiểu 'err' lúc này là AxiosError nên truy cập .response an toàn
-                    const serverMessage = err.response?.data?.message;
-                    setError(serverMessage || "Không thể tải dữ liệu sản phẩm");
-                } else if (err instanceof Error) {
-                    // Lỗi thường (lỗi code, logic...)
-                    setError(err.message);
-                } else {
-                    // Lỗi không xác định
-                    setError("Đã xảy ra lỗi không mong muốn");
-                }
+            } catch (err: any) {
+                setError("Không thể tải dữ liệu sản phẩm");
             } finally {
                 setLoading(false);
             }
         };
-
-        if (id) {
-            fetchProductData();
-        }
+        if (id) fetchProductData();
     }, [id]);
 
-    if (loading) return <div style={styles.loading}>Đang tải dữ liệu...</div>;
-    if (error) return <div style={styles.error}>{error}</div>;
-    if (!product) return <div style={styles.error}>Sản phẩm không tồn tại.</div>;
+    // Hàm bổ trợ để lấy tên file từ đường dẫn lưu trong DB
+    const getFileName = (path: string) => path.split('/').pop();
+
+    if (loading) return <div style={styles.centerMsg}>Đang tải dữ liệu...</div>;
+    if (error) return <div style={{ ...styles.centerMsg, color: "red" }}>{error}</div>;
+    if (!product) return <div style={styles.centerMsg}>Không tìm thấy dịch vụ.</div>;
 
     return (
         <div style={styles.container}>
-            {/* --- PHẦN CHI TIẾT SẢN PHẨM --- */}
-            <div style={styles.mainContent}>
-                {/* Cột trái: Hình ảnh */}
-                <div style={styles.imageSection}>
-                    <img
-                        src={product.images[activeImg] || "https://via.placeholder.com/600"}
-                        alt={product.title}
-                        style={styles.mainImage}
-                    />
-                    <div style={styles.thumbnailList}>
-                        {product.images.map((img, index) => (
+            <div style={styles.mainGrid}>
+                {/* === CỘT TRÁI: HÌNH ẢNH (CHẠY QUA BỘ LỌC WATERMARK) === */}
+                <div style={styles.leftCol}>
+                    <div style={styles.imageSection}>
+                        <div style={styles.mainImageWrapper}>
                             <img
-                                key={index}
-                                src={img}
-                                style={{
-                                    ...styles.thumbnail,
-                                    border: activeImg === index ? "2px solid #000" : "1px solid #ddd",
-                                }}
-                                onClick={() => setActiveImg(index)}
+                                // Gọi qua API image để có watermark
+                                src={product.images[activeImg]
+                                    ? `${API_IMAGE_URL}/${getFileName(product.images[activeImg])}`
+                                    : "https://via.placeholder.com/800"}
+                                alt={product.title}
+                                style={styles.mainImage}
                             />
-                        ))}
-                    </div>
-                </div>
+                        </div>
 
-                {/* Cột phải: Thông tin */}
-                <div style={styles.infoSection}>
-                    <h1 style={styles.title}>{product.title}</h1>
-                    <p style={styles.price}>{product.price.toLocaleString("vi-VN")} đ</p>
-
-                    <div style={styles.tagsContainer}>
-                        {product.tags.map((tag) => (
-                            <span key={tag} style={styles.tag}>#{tag}</span>
-                        ))}
-                    </div>
-
-                    <div style={styles.description}>
-                        <h3>Mô tả sản phẩm</h3>
-                        <p>{product.description}</p>
-                    </div>
-
-                    {/* Thông tin Designer */}
-                    <div style={styles.designerCard}>
-                        <img
-                            src={product.designerId?.profilePicture || "https://via.placeholder.com/50"}
-                            alt="designer"
-                            style={styles.avatar}
-                        />
-                        <div style={styles.designerInfo}>
-                            <h4 style={styles.designerName}>
-                                {product.designerId?.fullName || "Chưa có tên"}
-                            </h4>
-                            <p style={styles.designerBio}>{product.designerId?.bio}</p>
-                            <div style={styles.rating}>⭐ {product.designerId?.rating || 5}/5</div>
+                        <div style={styles.thumbnailRow}>
+                            {product.images.map((img, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => setActiveImg(idx)}
+                                    style={{
+                                        ...styles.thumbContainer,
+                                        border: activeImg === idx ? "2px solid #8b5cf6" : "1px solid #eee"
+                                    }}
+                                >
+                                    <img
+                                        // Thumbnail cũng chạy qua bộ lọc watermark
+                                        src={`${API_IMAGE_URL}/${getFileName(img)}`}
+                                        style={styles.thumbImg}
+                                        alt="thumbnail"
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <button style={styles.buyButton}>Mua ngay</button>
+                    <div style={styles.infoSection}>
+                        <div style={styles.designerRow}>
+                            <img src={product.designerId?.profilePicture} style={styles.miniAvatar} alt="avatar" />
+                            <div>
+                                <div style={styles.designerNameName}>
+                                    {product.designerId?.fullName} <span style={styles.proBadge}>PRO</span>
+                                </div>
+                                <div style={styles.ratingText}>
+                                    ★ {product.designerId?.rating} — Đã hoàn thành 182 dự án
+                                </div>
+                            </div>
+                        </div>
+
+                        <h1 style={styles.titleText}>{product.title}</h1>
+                        <p style={styles.descriptionText}>{product.description}</p>
+
+                        <div style={styles.tagContainer}>
+                            {product.tags.map(tag => (
+                                <span key={tag} style={styles.tagItem}>{tag}</span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* === CỘT PHẢI: BẢNG GIÁ === */}
+                <div style={styles.rightCol}>
+                    <div style={styles.pricingCard}>
+                        <div style={styles.priceSection}>
+                            <span style={styles.priceValue}>{product.price.toLocaleString('vi-VN')} đ</span>
+                            <span style={styles.priceUnit}> / trọn gói</span>
+                        </div>
+
+                        <div style={styles.serviceCommitment}>
+                            <div style={styles.featureItem}>✓ Logo thiết kế sẵn – mua và sử dụng ngay</div>
+                            <div style={styles.featureItem}>✓ Nhận file ngay sau thanh toán</div>
+                            <div style={styles.featureItem}>✓ Tùy chọn định dạng file (PNG, JPG, SVG)</div>
+                            <div style={styles.featureItem}>✓ Độ phân giải cực cao (4K)</div>
+                            <div style={styles.featureItem}>✓ Toàn quyền sử dụng thương mại</div>
+                        </div>
+
+                        <button style={styles.orderBtn}>Mua ngay</button>
+                        <button style={styles.contactBtn}>Liên hệ Designer</button>
+
+                    </div>
                 </div>
             </div>
 
-            {/* --- PHẦN SẢN PHẨM TƯƠNG TỰ --- */}
+            {/* === DỊCH VỤ TƯƠNG TỰ === */}
             <div style={styles.relatedSection}>
-                <h2 style={styles.sectionTitle}>Sản phẩm tương tự</h2>
+                <div style={styles.relatedHeader}>
+                    <h2 style={styles.relatedTitle}>Dịch vụ tương tự</h2>
+                    <span style={styles.exploreLink}>Xem tất cả</span>
+                </div>
                 <div style={styles.relatedGrid}>
-                    {relatedProducts.length > 0 ? (
-                        relatedProducts.map((item) => (
-                            <div
-                                key={item._id}
-                                style={styles.relatedCard}
-                                onClick={() => navigate(`/product/${item._id}`)}
-                            >
-                                <img src={item.images[0]} alt={item.title} style={styles.relatedImg} />
-                                <h4 style={styles.relatedTitle}>{item.title}</h4>
-                                <p style={styles.relatedPrice}>{item.price.toLocaleString("vi-VN")} đ</p>
+                    {relatedProducts.map((item) => (
+                        <div key={item._id} style={styles.relCard} onClick={() => navigate(`/product/${item._id}`)}>
+                            <div style={styles.relImgBox}>
+                                <img
+                                    // Thay đổi: Ảnh liên quan cũng được bảo vệ
+                                    src={`${API_IMAGE_URL}/${getFileName(item.images[0])}`}
+                                    style={styles.relImg}
+                                    alt={item.title}
+                                />
                             </div>
-                        ))
-                    ) : (
-                        <p>Không có sản phẩm tương tự.</p>
-                    )}
+                            <div style={styles.relInfo}>
+                                <div style={styles.relTitle}>{item.title}</div>
+                                <div style={styles.relPrice}>Từ {item.price.toLocaleString('vi-VN')} đ</div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
     );
 };
 
-// --- Styles (Giữ nguyên giao diện của bạn) ---
+// --- CSS STYLES ---
 const styles: { [key: string]: React.CSSProperties } = {
-    container: { maxWidth: "1200px", margin: "0 auto", padding: "40px 20px", fontFamily: "Arial, sans-serif" },
-    mainContent: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", marginBottom: "60px" },
-    imageSection: { display: "flex", flexDirection: "column", gap: "15px" },
-    mainImage: { width: "100%", borderRadius: "12px", objectFit: "cover", height: "500px" },
-    thumbnailList: { display: "flex", gap: "10px", overflowX: "auto" },
-    thumbnail: { width: "80px", height: "80px", borderRadius: "8px", cursor: "pointer", objectFit: "cover" },
-    infoSection: { display: "flex", flexDirection: "column", gap: "20px" },
-    title: { fontSize: "28px", fontWeight: "bold", color: "#333" },
-    price: { fontSize: "24px", color: "#e44d26", fontWeight: "bold" },
-    tagsContainer: { display: "flex", gap: "10px" },
-    tag: { padding: "5px 12px", background: "#f0f0f0", borderRadius: "20px", fontSize: "14px", color: "#666" },
-    description: { lineHeight: "1.6", color: "#555" },
-    designerCard: { display: "flex", gap: "15px", padding: "20px", background: "#f9f9f9", borderRadius: "12px", alignItems: "center" },
-    avatar: { width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover" },
-    designerInfo: { flex: 1 },
-    designerName: { margin: "0 0 5px 0", fontSize: "18px" },
-    designerBio: { fontSize: "14px", color: "#777", margin: "0 0 5px 0" },
-    rating: { fontSize: "14px", color: "#ffa500" },
-    buyButton: { padding: "15px", background: "#000", color: "#fff", border: "none", borderRadius: "8px", fontSize: "18px", cursor: "pointer", fontWeight: "bold" },
-    relatedSection: { borderTop: "1px solid #eee", paddingTop: "40px" },
-    sectionTitle: { fontSize: "22px", marginBottom: "20px" },
-    relatedGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "20px" },
-    relatedCard: { cursor: "pointer", transition: "transform 0.2s" },
-    relatedImg: { width: "100%", height: "200px", borderRadius: "8px", objectFit: "cover" },
-    relatedTitle: { fontSize: "16px", margin: "10px 0 5px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-    relatedPrice: { color: "#e44d26", fontWeight: "bold" },
-    loading: { textAlign: "center", padding: "100px", fontSize: "20px" },
-    error: { textAlign: "center", padding: "100px", color: "red", fontSize: "18px" },
+    container: { maxWidth: "1250px", margin: "0 auto", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a" },
+    centerMsg: { textAlign: "center", padding: "100px", fontSize: "16px" },
+    mainGrid: { display: "grid", gridTemplateColumns: "1fr 360px", gap: "50px", alignItems: "flex-start" },
+    leftCol: { display: "flex", flexDirection: "column" },
+    imageSection: { width: "100%", display: "flex", flexDirection: "column", gap: "12px" },
+    mainImageWrapper: { width: "100%", height: "450px", borderRadius: "20px", overflow: "hidden", backgroundColor: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center" },
+    mainImage: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" },
+    thumbnailRow: { display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "5px" },
+    thumbContainer: { width: "70px", height: "50px", flexShrink: 0, borderRadius: "8px", overflow: "hidden", cursor: "pointer" },
+    thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
+    infoSection: { marginTop: "30px" },
+    designerRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" },
+    miniAvatar: { width: "48px", height: "48px", borderRadius: "50%", border: "1px solid #eee" },
+    designerNameName: { fontWeight: "700", fontSize: "17px" },
+    proBadge: { backgroundColor: "#0075f2", color: "#fff", fontSize: "10px", padding: "2px 8px", borderRadius: "4px", marginLeft: "6px", verticalAlign: "middle" },
+    ratingText: { fontSize: "13px", color: "#666", marginTop: "3px" },
+    titleText: { fontSize: "28px", fontWeight: "800", marginBottom: "15px", color: "#000" },
+    descriptionText: { fontSize: "15px", lineHeight: "1.7", color: "#444", marginBottom: "25px" },
+    tagContainer: { display: "flex", gap: "8px" },
+    tagItem: { fontSize: "12px", padding: "5px 15px", backgroundColor: "#777", borderRadius: "20px", color: "#fff" },
+    rightCol: { position: "sticky", top: "20px" },
+    pricingCard: { border: "1px solid #efefef", borderRadius: "24px", padding: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.04)", backgroundColor: "#fff" },
+    priceSection: { marginBottom: "25px", borderBottom: "1px solid #f5f5f5", paddingBottom: "20px" },
+    priceValue: { fontSize: "30px", fontWeight: "800", color: "#000" },
+    priceUnit: { color: "#999", fontSize: "14px" },
+    serviceCommitment: { marginBottom: "25px" },
+    featureItem: { fontSize: "14px", color: "#555", marginBottom: "12px", display: "flex", alignItems: "center" },
+    orderBtn: { width: "100%", padding: "16px", backgroundColor: "#0075f2", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "700", fontSize: "16px", cursor: "pointer", marginBottom: "12px", transition: "0.2s" },
+    contactBtn: { width: "100%", padding: "16px", backgroundColor: "#fff", color: "#000", border: "1px solid #ddd", borderRadius: "12px", fontWeight: "600", fontSize: "16px", cursor: "pointer" },
+    trustRow: { display: "flex", justifyContent: "space-between", marginTop: "25px", opacity: 0.5 },
+    trustItem: { fontSize: "10px", fontWeight: "700", letterSpacing: "1px" },
+    relatedSection: { marginTop: "30px", paddingTop: "30px", borderTop: "1px solid #eee" },
+    relatedHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" },
+    relatedTitle: { fontSize: "22px", fontWeight: "800" },
+    exploreLink: { fontSize: "14px", color: "#0075f2", fontWeight: "600", cursor: "pointer" },
+    relatedGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "25px" },
+    relCard: { cursor: "pointer", transition: "transform 0.2s" },
+    relImgBox: { width: "100%", aspectRatio: "4/3", borderRadius: "16px", overflow: "hidden", marginBottom: "12px" },
+    relImg: { width: "100%", height: "100%", objectFit: "cover" },
+    relTitle: { fontSize: "15px", fontWeight: "700", marginBottom: "5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+    relPrice: { fontSize: "14px", color: "#666" }
 };
 
 export default ProductDetail;

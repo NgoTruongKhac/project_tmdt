@@ -46,6 +46,7 @@ app.use("/api/v1/services", serviceRouter);
 app.use("/api/v1/favorites", favoriteRouter);
 app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/products", productRouter);
+app.use('/uploads', express.static('public/uploads'));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
