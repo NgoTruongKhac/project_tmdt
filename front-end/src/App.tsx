@@ -13,8 +13,8 @@ import { ToastContainer } from "./components/common/Toast";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
-import ProductDetail from "./pages/ProductDetail";
-import Order from "./pages/Order";;
+import ServiceDetail from "./pages/ServiceDetail";
+import Order from "./pages/Order";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -30,7 +30,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/favorites" element={<Favorites />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/order" element={<Order />} />
         </Route>
         <Route path="/login" element={<Login />} />

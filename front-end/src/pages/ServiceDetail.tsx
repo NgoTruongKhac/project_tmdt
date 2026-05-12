@@ -9,7 +9,7 @@ interface IDesigner {
     rating: number;
 }
 
-interface IProduct {
+interface IService {
     _id: string;
     title: string;
     price: number;
@@ -19,40 +19,42 @@ interface IProduct {
     designerId: IDesigner;
 }
 
-interface IRelatedProduct {
+interface IRelatedService {
     _id: string;
     title: string;
     price: number;
     images: string[];
 }
 
-const ProductDetail: React.FC = () => {
+const ServiceDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [product, setProduct] = useState<IProduct | null>(null);
-    const [relatedProducts, setRelatedProducts] = useState<IRelatedProduct[]>([]);
+    const [service, setService] = useState<IService | null>(null);
+    const [relatedServices, setRelatedServices] = useState<IRelatedService[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeImg, setActiveImg] = useState(0);
 
-    // Cấu hình URL cơ sở của Backend
-    const API_IMAGE_URL = "http://localhost:3000/api/v1/products/image";
+    const API_IMAGE_URL = "http://localhost:3000/api/v1/services/image";
 
     useEffect(() => {
-        const fetchProductData = async () => {
+        const fetchServiceData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:3000/api/v1/products/${id}`);
-                setProduct(response.data.product);
-                setRelatedProducts(response.data.relatedProducts || []);
+                // Gọi API sang endpoint services
+                const response = await axios.get(`http://localhost:3000/api/v1/services/${id}`);
+
+                // Cập nhật dữ liệu từ response
+                setService(response.data.service);
+                setRelatedServices(response.data.relatedServices || []);
                 setActiveImg(0);
-            } catch (err: any) {
+            } catch {
                 setError("Không thể tải dữ liệu sản phẩm");
             } finally {
                 setLoading(false);
             }
         };
-        if (id) fetchProductData();
+        if (id) fetchServiceData();
     }, [id]);
 
     // Hàm bổ trợ để lấy tên file từ đường dẫn lưu trong DB
@@ -60,27 +62,27 @@ const ProductDetail: React.FC = () => {
 
     if (loading) return <div style={styles.centerMsg}>Đang tải dữ liệu...</div>;
     if (error) return <div style={{ ...styles.centerMsg, color: "red" }}>{error}</div>;
-    if (!product) return <div style={styles.centerMsg}>Không tìm thấy dịch vụ.</div>;
+    if (!service) return <div style={styles.centerMsg}>Không tìm thấy dịch vụ.</div>;
 
     return (
         <div style={styles.container}>
             <div style={styles.mainGrid}>
-                {/* === CỘT TRÁI: HÌNH ẢNH (CHẠY QUA BỘ LỌC WATERMARK) === */}
+                {/* === CỘT TRÁI: HÌNH ẢNH === */}
                 <div style={styles.leftCol}>
                     <div style={styles.imageSection}>
                         <div style={styles.mainImageWrapper}>
                             <img
-                                // Gọi qua API image để có watermark
-                                src={product.images[activeImg]
-                                    ? `${API_IMAGE_URL}/${getFileName(product.images[activeImg])}`
+                                // Ảnh chạy qua bộ lọc watermark của service API
+                                src={service.images[activeImg]
+                                    ? `${API_IMAGE_URL}/${getFileName(service.images[activeImg])}`
                                     : "https://via.placeholder.com/800"}
-                                alt={product.title}
+                                alt={service.title}
                                 style={styles.mainImage}
                             />
                         </div>
 
                         <div style={styles.thumbnailRow}>
-                            {product.images.map((img, idx) => (
+                            {service.images.map((img, idx) => (
                                 <div
                                     key={idx}
                                     onClick={() => setActiveImg(idx)}
@@ -102,22 +104,23 @@ const ProductDetail: React.FC = () => {
 
                     <div style={styles.infoSection}>
                         <div style={styles.designerRow}>
-                            <img src={product.designerId?.profilePicture} style={styles.miniAvatar} alt="avatar" />
+                            <img src={service.designerId?.profilePicture} style={styles.miniAvatar} alt="avatar" />
                             <div>
                                 <div style={styles.designerNameName}>
-                                    {product.designerId?.fullName} <span style={styles.proBadge}>PRO</span>
+                                    {service.designerId?.fullName} <span style={styles.proBadge}>PRO</span>
                                 </div>
                                 <div style={styles.ratingText}>
-                                    ★ {product.designerId?.rating} — Đã hoàn thành 182 dự án
+                                    {/* Số dự án đang set cứng, sẽ xử lý sau */}
+                                    ★ {service.designerId?.rating} — Đã hoàn thành 182 dự án
                                 </div>
                             </div>
                         </div>
 
-                        <h1 style={styles.titleText}>{product.title}</h1>
-                        <p style={styles.descriptionText}>{product.description}</p>
+                        <h1 style={styles.titleText}>{service.title}</h1>
+                        <p style={styles.descriptionText}>{service.description}</p>
 
                         <div style={styles.tagContainer}>
-                            {product.tags.map(tag => (
+                            {service.tags.map(tag => (
                                 <span key={tag} style={styles.tagItem}>{tag}</span>
                             ))}
                         </div>
@@ -128,8 +131,8 @@ const ProductDetail: React.FC = () => {
                 <div style={styles.rightCol}>
                     <div style={styles.pricingCard}>
                         <div style={styles.priceSection}>
-                            <span style={styles.priceValue}>{product.price.toLocaleString('vi-VN')} đ</span>
-                            <span style={styles.priceUnit}> / trọn gói</span>
+                            <span style={styles.priceValue}>{service.price.toLocaleString('vi-VN')} đ</span>
+                            <span style={styles.priceUnit}> / mỗi gói</span>
                         </div>
 
                         <div style={styles.serviceCommitment}>
@@ -154,11 +157,11 @@ const ProductDetail: React.FC = () => {
                     <span style={styles.exploreLink}>Xem tất cả</span>
                 </div>
                 <div style={styles.relatedGrid}>
-                    {relatedProducts.map((item) => (
-                        <div key={item._id} style={styles.relCard} onClick={() => navigate(`/product/${item._id}`)}>
+                    {relatedServices.map((item) => (
+                        <div key={item._id} style={styles.relCard} onClick={() => navigate(`/service/${item._id}`)}>
                             <div style={styles.relImgBox}>
                                 <img
-                                    // Thay đổi: Ảnh liên quan cũng được bảo vệ
+                                    // Ảnh của dịch vụ liên quan cũng được bảo vệ
                                     src={`${API_IMAGE_URL}/${getFileName(item.images[0])}`}
                                     style={styles.relImg}
                                     alt={item.title}
@@ -190,7 +193,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
     infoSection: { marginTop: "30px" },
     designerRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" },
-    miniAvatar: { width: "48px", height: "48px", borderRadius: "50%", border: "1px solid #eee" },
+    miniAvatar: {  objectFit: "cover", width: "48px", height: "48px", borderRadius: "50%", border: "1px solid #eee" },
     designerNameName: { fontWeight: "700", fontSize: "17px" },
     proBadge: { backgroundColor: "#0075f2", color: "#fff", fontSize: "10px", padding: "2px 8px", borderRadius: "4px", marginLeft: "6px", verticalAlign: "middle" },
     ratingText: { fontSize: "13px", color: "#666", marginTop: "3px" },
@@ -221,4 +224,4 @@ const styles: { [key: string]: React.CSSProperties } = {
     relPrice: { fontSize: "14px", color: "#666" }
 };
 
-export default ProductDetail;
+export default ServiceDetail;

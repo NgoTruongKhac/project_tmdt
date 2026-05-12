@@ -12,6 +12,7 @@ const ServiceSchema = new mongoose.Schema(
             required: true,
         },
         images: { type: [String], default: [] },
+        tags: { type: [String], default: [] }, // Giữ lại tags để dùng cho phần "Dịch vụ tương tự"
         status: {
             type: String,
             enum: ["pending", "approved", "rejected"],
