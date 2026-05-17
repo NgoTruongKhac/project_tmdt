@@ -7,6 +7,8 @@ import {
 
 import ModalChangePassword from "@/components/ModalChangePassword";
 import ModalUploadDesignerProfile from "@/components/ModalUploadDesignerProfile";
+import ModalChangeEmail from "@/components/ModalChangeEmail";
+import OTPModalVerifyEmail from "@/components/OTPModalVerifyEmail";
 
 interface DesignerProfile {
   age: number;
@@ -22,6 +24,7 @@ interface UserProfile {
   fullName: string;
   email: string;
   profilePicture: string;
+  googleId?: string;
 
   role: "CUSTOMER" | "DESIGNER" | "ADMIN";
 
@@ -40,10 +43,26 @@ export default function Profile() {
   const [loadingPicture, setLoadingPicture] = useState(false);
 
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   const [showDesignerModal, setShowDesignerModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Thêm state lưu email đang chờ xác minh
+  const [pendingEmail, setPendingEmail] = useState("");
+
+  // Handler khi changeEmail thành công
+  const handleChangeEmailSuccess = (newEmail: string) => {
+    setPendingEmail(newEmail);
+    setShowOtpModal(true);
+  };
+
+  // Handler khi verifyChangeEmail thành công — refetch user
+  const handleVerifyEmailSuccess = () => {
+    fetchUser(); // cập nhật email mới trên UI
+  };
 
   const fetchUser = async () => {
     try {
@@ -61,6 +80,7 @@ export default function Profile() {
   useEffect(() => {
     fetchUser();
   }, []);
+  const isGoogleAccount = !!user?.googleId;
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -271,7 +291,20 @@ export default function Profile() {
                   value={user.email}
                   readOnly
                 />
-                <button className="btn btn-outline">Chỉnh sửa</button>
+                <button
+                  className={`btn ${
+                    isGoogleAccount ? "btn-disabled" : "btn-outline"
+                  }`}
+                  onClick={() => setShowChangeEmail(true)}
+                  disabled={isGoogleAccount}
+                  title={
+                    isGoogleAccount
+                      ? "Tài khoản Google không thể thay đổi email"
+                      : ""
+                  }
+                >
+                  Chỉnh sửa
+                </button>
               </div>
             </div>
           </div>
@@ -400,6 +433,17 @@ export default function Profile() {
       <ModalChangePassword
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
+      />
+      <ModalChangeEmail
+        isOpen={showChangeEmail}
+        onClose={() => setShowChangeEmail(false)}
+        onSuccess={handleChangeEmailSuccess}
+      />
+      <OTPModalVerifyEmail
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        newEmail={pendingEmail}
+        onSuccess={handleVerifyEmailSuccess}
       />
 
       {user.role === "CUSTOMER" && (

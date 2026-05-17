@@ -44,3 +44,13 @@ export const changePassword = async (
   });
   return response.data;
 };
+
+export const changeEmail = async (newEmail: string) => {
+  const response = await api.post("/auth/change-email", { newEmail });
+  return response.data;
+};
+
+export const verifyChangeEmail = async (otp: string) => {
+  const response = await api.post("/auth/verify-change-email", { otp });
+  return response.data;
+};

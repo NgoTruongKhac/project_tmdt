@@ -6,7 +6,7 @@ import { useAuthStore } from "./stores/useAuthStore";
 import { useEffect } from "react";
 import MainLayout from "./layouts/MainLayout";
 import AuthGoogle from "./pages/AuthGoogle";
-import Profile from "./pages/profile";
+import Profile from "./pages/Profile";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();

@@ -24,6 +24,7 @@ export const getMe = async (req, res, next) => {
       fullName: user.fullName,
       email: user.email,
       profilePicture: user.profilePicture,
+      googleId: user.googleId,
       role: user.role,
       designerProfile,
     });
