@@ -7,6 +7,12 @@ const UserCheSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     googleId: { type: String, unique: true, sparse: true },
     profilePicture: { type: String, default: "" },
+    rewardPoints: { type: Number, default: 0 },
+    membershipLevel: {
+      type: String,
+      enum: ["Bronze", "Silver", "Gold", "Platinum"],
+      default: "Bronze",
+    },
   },
   { timestamps: true },
 );

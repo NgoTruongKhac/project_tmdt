@@ -1,14 +1,16 @@
-import { Search, Bell, User, LogOut, Heart } from "lucide-react";
+import { Search, Bell, User, LogOut, Heart, Crown } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useFavorite } from "@/contexts/FavoriteContext";
+import { useReward } from "@/contexts/RewardContext";
 
 export default function Navbar() {
   // Lấy thông tin user từ Zustand store
   const user = useAuthStore((state) => state.user);
   const { logout } = useAuthStore();
   const { favoriteCount } = useFavorite();
+  const { points, membershipLevel } = useReward();
 
   const handleLogout = () => {
     logout();
@@ -74,6 +76,16 @@ export default function Navbar() {
                   {favoriteCount > 99 ? "99+" : favoriteCount}
                 </span>
               )}
+            </Link>
+
+            {/* Reward Points */}
+            <Link
+              to="/rewards"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors font-medium text-sm ml-1 border border-amber-200"
+              title={`Hạng: ${membershipLevel}`}
+            >
+              <Crown className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span>{points} điểm</span>
             </Link>
           </>
         )}
