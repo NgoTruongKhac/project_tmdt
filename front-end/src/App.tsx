@@ -16,6 +16,7 @@ import Rewards from "./pages/Rewards";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -27,36 +28,28 @@ function App() {
 
   return (
     <FavoriteProvider>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/favorites" element={<Favorites />} />
-        </Route>
       <RewardProvider>
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/rewards" element={<Rewards />} />
           </Route>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/auth-google" element={<AuthGoogle />} />
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<div>Trang Tổng quan Admin</div>} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="services" element={<AdminServices />} />
-        </Route>
-      </Routes>
-      
-        {/* Toast Container */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/auth-google" element={<AuthGoogle />} />
+
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="services" element={<AdminServices />} />
+          </Route>
+        </Routes>
+
         <ToastContainer toasts={toasts} onRemove={removeToast} />
       </RewardProvider>
-
-      {/* Toast Container */}
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </FavoriteProvider>
   );
 }
