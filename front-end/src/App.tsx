@@ -17,6 +17,8 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import ServiceDetail from "./pages/ServiceDetail";
+import Order from "./pages/Order";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -31,10 +33,13 @@ function App() {
       <RewardProvider>
         <Routes>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/rewards" element={<Rewards />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/rewards" element={<Rewards />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/service/:id" element={<ServiceDetail />} />
+              <Route path="/order" element={<Order />} />
           </Route>
 
           <Route path="/login" element={<Login />} />
