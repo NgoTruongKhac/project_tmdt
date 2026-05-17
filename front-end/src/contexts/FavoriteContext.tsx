@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { getFavoriteCount, toggleFavorite as toggleFavoriteApi } from "@/api/favoriteApi";
+import { getFavoriteCount, getFavorites, toggleFavorite as toggleFavoriteApi } from "@/api/favoriteApi";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 interface FavoriteContextType {
@@ -10,6 +10,7 @@ interface FavoriteContextType {
   toggleFavorite: (serviceId: string) => Promise<{ success: boolean; message: string; isFavorite: boolean }>;
   checkIsFavorite: (serviceId: string) => boolean;
   refreshFavoriteCount: () => Promise<void>;
+  loadFavoriteItems: () => Promise<void>;
   addToFavoriteItems: (serviceId: string) => void;
   removeFromFavoriteItems: (serviceId: string) => void;
 }
@@ -51,6 +52,24 @@ export const FavoriteProvider = ({ children }: FavoriteProviderProps) => {
       setFavoriteCount(0);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Load favorite items từ API
+  const loadFavoriteItems = async () => {
+    if (!isAuthenticated || !user) {
+      setFavoriteItems(new Set());
+      return;
+    }
+
+    try {
+      // Load tất cả favorites (có thể cần phân trang nếu quá nhiều)
+      const response = await getFavorites(1, 1000); // Load 1000 items đầu tiên
+      const serviceIds = response.data.favorites.map(fav => fav.service._id);
+      setFavoriteItems(new Set(serviceIds));
+    } catch (error) {
+      console.error("Error loading favorite items:", error);
+      setFavoriteItems(new Set());
     }
   };
 
@@ -111,10 +130,29 @@ export const FavoriteProvider = ({ children }: FavoriteProviderProps) => {
     }
   };
 
-  // Load favorite count khi component mount hoặc user thay đổi
+  // Load favorite count và items khi component mount hoặc user thay đổi
   useEffect(() => {
-    refreshFavoriteCount();
+    const loadData = async () => {
+      if (isAuthenticated && user) {
+        await Promise.all([
+          refreshFavoriteCount(),
+          loadFavoriteItems()
+        ]);
+      } else {
+        setFavoriteCount(0);
+        setFavoriteItems(new Set());
+      }
+    };
+
+    loadData();
   }, [isAuthenticated, user]);
+
+  // Sync favorite count with favorite items size
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setFavoriteCount(favoriteItems.size);
+    }
+  }, [favoriteItems.size, isAuthenticated, user]);
 
   const value: FavoriteContextType = {
     favoriteCount,
@@ -123,6 +161,7 @@ export const FavoriteProvider = ({ children }: FavoriteProviderProps) => {
     toggleFavorite,
     checkIsFavorite,
     refreshFavoriteCount,
+    loadFavoriteItems,
     addToFavoriteItems,
     removeFromFavoriteItems,
   };

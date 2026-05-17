@@ -1,4 +1,4 @@
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Lấy tất cả gói dịch vụ với phân trang
@@ -8,6 +8,7 @@ export const getAllServices = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const services = await ServicePackage.find({ isActive: true })
+    .populate("designer", "fullName profilePicture")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -39,6 +40,7 @@ export const getBestSellers = asyncHandler(async (req, res) => {
     isActive: true,
     isBestSeller: true,
   })
+    .populate("designer", "fullName profilePicture")
     .sort({ soldCount: -1 })
     .limit(8)
     .select("-__v");
@@ -53,6 +55,7 @@ export const getBestSellers = asyncHandler(async (req, res) => {
 // Lấy gói mới nhất
 export const getNewestServices = asyncHandler(async (req, res) => {
   const services = await ServicePackage.find({ isActive: true })
+    .populate("designer", "fullName profilePicture")
     .sort({ createdAt: -1 })
     .limit(8)
     .select("-__v");
@@ -70,6 +73,7 @@ export const getFeaturedServices = asyncHandler(async (req, res) => {
     isActive: true,
     isFeatured: true,
   })
+    .populate("designer", "fullName profilePicture")
     .sort({ createdAt: -1 })
     .limit(8)
     .select("-__v");
@@ -88,7 +92,9 @@ export const getServiceBySlug = asyncHandler(async (req, res) => {
   const service = await ServicePackage.findOne({
     slug,
     isActive: true,
-  }).select("-__v");
+  })
+    .populate("designer", "fullName profilePicture")
+    .select("-__v");
 
   if (!service) {
     return res.status(404).json({
