@@ -9,15 +9,15 @@ const seedDB = async () => {
         console.log("Đã kết nối MongoDB để tạo data mẫu...");
 
         // Xóa dữ liệu cũ để tránh trùng lặp
-        await User.deleteMany({});
-        await Service.deleteMany({}); // Xóa bảng Service mới
+        //await User.deleteMany({});
+        //await Service.deleteMany({}); // Xóa bảng Service mới
 
         // Tạo một Designer mẫu
         const designer = await User.create({
             fullName: "Julian Nguyen",
             password: "nguyen123",
             email: "julian@studio.com",
-            role: "designer",
+            role: "DESIGNER",
             profilePicture: "https://hthaostudio.com/wp-content/uploads/2024/10/Anh-profile-nam-dep-6-min.jpg",
             skills: ["Retouching", "Branding", "UI/UX"],
             bio: "Chuyên gia thiết kế logo với hơn 10 năm kinh nghiệm làm việc cùng các thương hiệu lớn.",

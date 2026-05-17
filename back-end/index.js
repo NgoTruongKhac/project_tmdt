@@ -6,7 +6,6 @@ import { connectDB } from "./src/databases/mongodb.js";
 import { authRouter } from "./src/routes/auth.route.js";
 import { userRouter } from "./src/routes/user.route.js";
 import { designerRouter } from "./src/routes/designer.route.js";
-import { serviceRouter } from "./src/routes/service.route.js";
 import serviceRouter from "./src/routes/service.route.js";
 import { favoriteRouter } from "./src/routes/favorite.route.js";
 import searchRouter from "./src/routes/search.route.js";
