@@ -8,6 +8,7 @@ import { userRouter } from "./src/routes/user.route.js";
 import { serviceRouter } from "./src/routes/service.route.js";
 import { favoriteRouter } from "./src/routes/favorite.route.js";
 import searchRouter from "./src/routes/search.route.js";
+import { rewardRoutes } from "./src/routes/rewardRoutes.js";
 import { errorHandler } from "./src/middlewares/errors/error.middleware.js";
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -46,6 +47,7 @@ app.use("/api/v1/services", serviceRouter);
 app.use("/api/v1/favorites", favoriteRouter);
 app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/rewards", rewardRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
