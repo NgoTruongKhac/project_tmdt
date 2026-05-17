@@ -7,6 +7,7 @@ import { useAuthStore } from "./stores/useAuthStore";
 import { useEffect } from "react";
 import MainLayout from "./layouts/MainLayout";
 import AuthGoogle from "./pages/AuthGoogle";
+import Profile from "./pages/Profile";
 import { FavoriteProvider } from "./contexts/FavoriteContext";
 import { RewardProvider } from "./contexts/RewardContext";
 import { useToast } from "./hooks/useToast";
@@ -26,6 +27,12 @@ function App() {
 
   return (
     <FavoriteProvider>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/favorites" element={<Favorites />} />
+        </Route>
       <RewardProvider>
         <Routes>
           <Route element={<MainLayout />}>
