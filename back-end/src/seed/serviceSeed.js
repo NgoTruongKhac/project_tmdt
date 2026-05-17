@@ -1,4 +1,4 @@
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { connectDB } from "../databases/mongodb.js";
 
 const sampleServices = [
@@ -251,6 +251,7 @@ const createSampleData = () => {
 
   return sampleServices.map((service) => ({
     ...service,
+    status: "approved",
     createdAt: new Date(
       sixMonthsAgo.getTime() + Math.random() * (now.getTime() - sixMonthsAgo.getTime())
     ),

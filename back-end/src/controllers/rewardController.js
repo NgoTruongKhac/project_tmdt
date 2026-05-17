@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import { RewardPointHistory } from "../models/RewardPointHistory.js";
+import { RewardPointHistory } from "../models/rewardPointHistory.model.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";

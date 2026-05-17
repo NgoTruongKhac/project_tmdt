@@ -1,5 +1,5 @@
 import { Service } from "../models/service.model.js";
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { User } from "../models/user.model.js";
 import { connectDB } from "../databases/mongodb.js";
 
@@ -307,6 +307,7 @@ export const seedCombinedServices = async () => {
       category: service.category,
       designerId: designer._id,
       images: service.images,
+      status: "approved",
       createdAt: service.createdAt
     }));
     
@@ -326,6 +327,7 @@ export const seedCombinedServices = async () => {
       isBestSeller: service.isBestSeller || false,
       isFeatured: service.isFeatured || false,
       isActive: true,
+      status: "approved",
       soldCount: service.soldCount || 0,
       createdAt: service.createdAt
     }));
@@ -356,10 +358,10 @@ export const seedCombinedServices = async () => {
       console.log(`  + ${cat._id}: ${cat.count}`);
     });
     
-    console.log("\n✅ Seed hoàn tất! Cả hai models đều có data giống nhau.");
+    console.log("\n Seed hoàn tất! Cả hai models đều có data giống nhau.");
     
   } catch (error) {
-    console.error("❌ Lỗi khi seed dữ liệu:", error);
+    console.error(" Lỗi khi seed dữ liệu:", error);
   }
 };
 

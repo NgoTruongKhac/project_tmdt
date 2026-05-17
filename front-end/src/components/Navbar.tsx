@@ -33,26 +33,13 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* 2. Phần Input Search (Ở giữa) - Ẩn trên mobile, hiện từ màn lg */}
+      {/* 2. Phần Input Search (Đã bị xoá) */}
       <div className="navbar-center hidden lg:flex w-full max-w-md">
-        <div className="relative w-full group">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-            <Search className="w-5 h-5 text-neutral-400 group-focus-within:text-primary transition-colors" />
-          </div>
-          <input
-            type="text"
-            placeholder="Tìm kiếm nội dung..."
-            className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
-          />
-        </div>
       </div>
 
       {/* 3. Phần Icons và Nút xác thực (Bên phải) */}
       <div className="navbar-end flex items-center gap-1 sm:gap-2">
-        {/* Nút tìm kiếm (Chỉ hiện ở mobile) */}
-        <button className="btn btn-ghost btn-circle lg:hidden text-neutral-600 hover:text-primary hover:bg-primary-50">
-          <Search className="w-5 h-5" />
-        </button>
+
 
         {/* Icon Bell hiển thị khi đã đăng nhập (Giữ nguyên, tự động hoạt động trên cả mobile và desktop) */}
         {user && (

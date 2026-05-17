@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 
