@@ -33,3 +33,24 @@ export const loginWithGoogle = () => {
     import.meta.env.VITE_SERVER_DOMAIN
   }/api/v1/auth/google`;
 };
+
+export const changePassword = async (
+  oldPassword: string,
+  newPassword: string,
+) => {
+  const response = await api.post("/auth/change-password", {
+    oldPassword,
+    newPassword,
+  });
+  return response.data;
+};
+
+export const changeEmail = async (newEmail: string) => {
+  const response = await api.post("/auth/change-email", { newEmail });
+  return response.data;
+};
+
+export const verifyChangeEmail = async (otp: string) => {
+  const response = await api.post("/auth/verify-change-email", { otp });
+  return response.data;
+};
