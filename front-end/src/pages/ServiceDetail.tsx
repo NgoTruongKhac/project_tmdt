@@ -15,7 +15,6 @@ interface IService {
     price: number;
     images: string[];
     description: string;
-    tags: string[];
     designerId: IDesigner;
 }
 
@@ -118,12 +117,6 @@ const ServiceDetail: React.FC = () => {
 
                         <h1 style={styles.titleText}>{service.title}</h1>
                         <p style={styles.descriptionText}>{service.description}</p>
-
-                        <div style={styles.tagContainer}>
-                            {service.tags.map(tag => (
-                                <span key={tag} style={styles.tagItem}>{tag}</span>
-                            ))}
-                        </div>
                     </div>
                 </div>
 
@@ -199,8 +192,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     ratingText: { fontSize: "13px", color: "#666", marginTop: "3px" },
     titleText: { fontSize: "28px", fontWeight: "800", marginBottom: "15px", color: "#000" },
     descriptionText: { fontSize: "15px", lineHeight: "1.7", color: "#444", marginBottom: "25px" },
-    tagContainer: { display: "flex", gap: "8px" },
-    tagItem: { fontSize: "12px", padding: "5px 15px", backgroundColor: "#777", borderRadius: "20px", color: "#fff" },
     rightCol: { position: "sticky", top: "20px" },
     pricingCard: { border: "1px solid #efefef", borderRadius: "24px", padding: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.04)", backgroundColor: "#fff" },
     priceSection: { marginBottom: "25px", borderBottom: "1px solid #f5f5f5", paddingBottom: "20px" },

@@ -140,10 +140,10 @@ export const getServiceDetail = async (req, res) => {
 
     if (!service) return res.status(404).json({ message: "Dịch vụ không tồn tại" });
 
-    // Tìm dịch vụ tương tự dựa trên tags như code cũ của bạn [cite: 227]
+    // Tìm dịch vụ tương tự dựa trên category
     let relatedServices = await Service.find({
       _id: { $ne: id },
-      tags: { $in: service.tags }
+      category: { $in: service.category}
     }).limit(4).select("title price images");
 
     res.status(200).json({ service, relatedServices });
@@ -186,7 +186,7 @@ export const getProtectedImage = async (req, res) => {
 // Tạo Service mới & Lưu các ảnh gốc
 export const createService = async (req, res) => {
   try {
-    const { title, price, description, tags, designerId } = req.body;
+    const { title, price, description, designerId } = req.body;
     const files = req.files;
     const imagePaths = [];
     const uploadPath = path.resolve("public/uploads");
@@ -205,7 +205,6 @@ export const createService = async (req, res) => {
 
     const newService = await Service.create({
       title, price, description,
-      tags: tags ? tags.split(",").map(t => t.trim()) : [],
       designerId,
       images: imagePaths // Mảng này sẽ chứa toàn bộ đường dẫn ảnh đã upload
     });
