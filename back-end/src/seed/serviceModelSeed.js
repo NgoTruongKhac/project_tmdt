@@ -159,6 +159,7 @@ export const seedServices = async () => {
     // Tạo dữ liệu mới với designerId
     const servicesData = sampleServices.map(service => ({
       ...service,
+      status: "approved",
       designerId: designer._id
     }));
 

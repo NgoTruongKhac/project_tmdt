@@ -1,6 +1,6 @@
-import { Favorite } from "../models/Favorite.js";
+import { Favorite } from "../models/favorite.model.js";
 import { User } from "../models/user.model.js";
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { connectDB } from "../databases/mongodb.js";
 
 // Hàm tạo dữ liệu yêu thích mẫu

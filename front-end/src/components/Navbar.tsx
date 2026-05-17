@@ -1,43 +1,45 @@
-import { Bell, User, LogOut, Heart } from "lucide-react";
+import { Search, Bell, User, LogOut, Heart, Crown } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useFavorite } from "@/contexts/FavoriteContext";
+import { useReward } from "@/contexts/RewardContext";
 
 export default function Navbar() {
   // Lấy thông tin user từ Zustand store
   const user = useAuthStore((state) => state.user);
   const { logout } = useAuthStore();
-  const { favoriteCount, favoriteItems } = useFavorite();
+  const { favoriteCount } = useFavorite();
+  const { points, membershipLevel } = useReward();
 
   const handleLogout = () => {
     logout();
     window.location.reload();
   };
 
-  const handleLogoClick = () => {
-    // Reload trang để reset tất cả state về trang chủ gốc
-    window.location.href = '/';
-  };
-
   return (
     <div className="navbar bg-white shadow-soft px-4 sm:px-6 py-3 sticky top-0 z-50">
       {/* 1. Phần Logo (Bên trái) */}
       <div className="navbar-start">
-        <button
-          onClick={handleLogoClick}
-          className="cursor-pointer transition-transform hover:scale-105 focus:outline-none"
+        <Link
+          to="/"
+          className="cursor-pointer transition-transform hover:scale-105"
         >
           <img
             src={logo_full}
             alt="logo full"
-            className="h-12 w-auto object-contain sm:h-14"
+            className="h-10 w-auto object-contain"
           />
-        </button>
+        </Link>
+      </div>
+
+      {/* 2. Phần Input Search (Đã bị xoá) */}
+      <div className="navbar-center hidden lg:flex w-full max-w-md">
       </div>
 
       {/* 3. Phần Icons và Nút xác thực (Bên phải) */}
       <div className="navbar-end flex items-center gap-1 sm:gap-2">
+
 
         {/* Icon Bell hiển thị khi đã đăng nhập (Giữ nguyên, tự động hoạt động trên cả mobile và desktop) */}
         {user && (
@@ -56,11 +58,21 @@ export default function Navbar() {
               title="Yêu thích"
             >
               <Heart className="w-5 h-5" />
-              {favoriteCount > 0 && favoriteItems.size > 0 && (
+              {favoriteCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                   {favoriteCount > 99 ? "99+" : favoriteCount}
                 </span>
               )}
+            </Link>
+
+            {/* Reward Points */}
+            <Link
+              to="/rewards"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors font-medium text-sm ml-1 border border-amber-200"
+              title={`Hạng: ${membershipLevel}`}
+            >
+              <Crown className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span>{points} điểm</span>
             </Link>
           </>
         )}
