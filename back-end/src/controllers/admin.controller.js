@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import { ServicePackage } from "../models/ServicePackage.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 
@@ -118,6 +118,83 @@ export const updateServiceStatus = asyncHandler(async (req, res) => {
             name: servicePackage.name,
             status: servicePackage.status,
             rejectReason: servicePackage.rejectReason,
+        },
+    });
+});
+
+export const getDashboardStats = asyncHandler(async (req, res) => {
+    const [
+        totalUsers,
+        totalServices,
+        pendingServices,
+        salesAggregation,
+        roleAggregation,
+        categoryAggregation,
+        topServices,
+    ] = await Promise.all([
+        User.countDocuments(),
+        ServicePackage.countDocuments(),
+        ServicePackage.countDocuments({ status: "pending" }),
+        ServicePackage.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalSales: { $sum: "$soldCount" },
+                },
+            },
+        ]),
+        User.aggregate([
+            {
+                $group: {
+                    _id: "$role",
+                    value: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$_id",
+                    value: 1,
+                },
+            },
+            {
+                $sort: { name: 1 },
+            },
+        ]),
+        ServicePackage.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    value: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$_id",
+                    value: 1,
+                },
+            },
+            {
+                $sort: { name: 1 },
+            },
+        ]),
+        ServicePackage.find()
+            .sort({ soldCount: -1, createdAt: -1 })
+            .limit(5)
+            .select("name soldCount -_id"),
+    ]);
+
+    res.status(200).json({
+        success: true,
+        data: {
+            totalUsers,
+            totalServices,
+            pendingServices,
+            totalSales: salesAggregation[0]?.totalSales || 0,
+            roleDistribution: roleAggregation,
+            categoryDistribution: categoryAggregation,
+            topServices,
         },
     });
 });
