@@ -16,6 +16,8 @@ export const getMe = async (req, res, next) => {
       fullName: user.fullName,
       email: user.email,
       profilePicture: user.profilePicture,
+      role: user.role,  
+      isActive: user.isActive
     });
   } catch (error) {
     next(error);

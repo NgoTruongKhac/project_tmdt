@@ -12,6 +12,9 @@ import { RewardProvider } from "./contexts/RewardContext";
 import { useToast } from "./hooks/useToast";
 import { ToastContainer } from "./components/common/Toast";
 import Rewards from "./pages/Rewards";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminServices from "./pages/admin/AdminServices";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -33,11 +36,20 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth-google" element={<AuthGoogle />} />
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<div>Trang Tổng quan Admin</div>} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="services" element={<AdminServices />} />
+        </Route>
       </Routes>
       
         {/* Toast Container */}
         <ToastContainer toasts={toasts} onRemove={removeToast} />
       </RewardProvider>
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </FavoriteProvider>
   );
 }

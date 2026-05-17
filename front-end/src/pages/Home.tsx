@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader, Search } from 'lucide-react';
+import { Loader, Search, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import HeroSection from "@/components/home/HeroSection";
 import FeaturedSection from "@/components/home/FeaturedSection";
@@ -47,7 +47,7 @@ export default function Home() {
   const serviceCategories = [
     'Tất cả',
     'poster',
-    'banner', 
+    'banner',
     'social-media',
     'business',
     'event',
@@ -136,7 +136,22 @@ export default function Home() {
         <div className="sticky top-0 z-30 border-b border-gray-100 bg-white px-4 py-3 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden">
-              <div className="flex gap-2 pb-2">
+              <div className="flex gap-2 pb-2 items-center">
+
+                {/* Nút Mũi tên Quay Lại */}
+                <button
+                  onClick={() => {
+                    setShowSearch(false); // Ẩn màn hình tìm kiếm, quay về trang chủ
+                    setServiceQuery(''); // Xóa từ khóa tìm kiếm
+                    setServiceCategory(''); // Reset danh mục
+                  }}
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200 hover:text-blue-600"
+                  title="Quay về trang chủ"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+
+                {/* Các nút danh mục cũ */}
                 {serviceCategories.map((category) => (
                   <button
                     key={category}
@@ -146,14 +161,14 @@ export default function Home() {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
-                    {category === 'Tất cả' ? 'Tất cả' : 
-                     category === 'poster' ? 'Poster' :
-                     category === 'banner' ? 'Banner' :
-                     category === 'social-media' ? 'Social Media' :
-                     category === 'business' ? 'Business' :
-                     category === 'event' ? 'Event' :
-                     category === 'combo' ? 'Combo' :
-                     category === 'other' ? 'Khác' : category}
+                    {category === 'Tất cả' ? 'Tất cả' :
+                      category === 'poster' ? 'Poster' :
+                        category === 'banner' ? 'Banner' :
+                          category === 'social-media' ? 'Social Media' :
+                            category === 'business' ? 'Business' :
+                              category === 'event' ? 'Event' :
+                                category === 'combo' ? 'Combo' :
+                                  category === 'other' ? 'Khác' : category}
                   </button>
                 ))}
               </div>
@@ -167,7 +182,7 @@ export default function Home() {
         // Original Home Page Content
         <div>
           {/* Hero Section */}
-          <HeroSection 
+          <HeroSection
             onSearch={handleServiceSearch}
             onCategoryChange={handleCategoryChange}
             serviceQuery={serviceQuery}
@@ -185,16 +200,16 @@ export default function Home() {
             handleKeyPress={handleKeyPress}
             handleClearSearch={handleClearSearch}
           />
-          
+
           {/* Featured Services */}
           <FeaturedSection />
-          
+
           {/* Best Sellers */}
           <BestSellerSlider />
-          
+
           {/* Newest Services */}
           <NewestSection />
-          
+
           {/* All Services */}
           <AllServicesSection />
         </div>

@@ -61,6 +61,19 @@ const ServicePackageSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    revisions: {
+      type: Number,
+      default: 0,
+    },
+    rejectReason: {
+      type: String,
+      default: "",
+    },
     soldCount: {
       type: Number,
       default: 0,

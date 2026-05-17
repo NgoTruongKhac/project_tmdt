@@ -12,6 +12,13 @@ const ServiceSchema = new mongoose.Schema(
             required: true,
         },
         images: { type: [String], default: [] },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+        },
+        revisions: { type: Number, default: 0 },
+        rejectReason: { type: String, default: "" },
     },
     { timestamps: true },
 );

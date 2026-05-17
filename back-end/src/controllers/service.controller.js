@@ -7,14 +7,20 @@ export const getAllServices = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit) || 8;
   const skip = (page - 1) * limit;
 
-  const services = await ServicePackage.find({ isActive: true })
+  const services = await ServicePackage.find({
+    isActive: true,
+    status: "approved",
+  })
     .populate("designer", "fullName profilePicture")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .select("-__v");
 
-  const total = await ServicePackage.countDocuments({ isActive: true });
+  const total = await ServicePackage.countDocuments({
+    isActive: true,
+    status: "approved",
+  });
   const totalPages = Math.ceil(total / limit);
 
   res.status(200).json({
@@ -39,6 +45,7 @@ export const getBestSellers = asyncHandler(async (req, res) => {
   const services = await ServicePackage.find({
     isActive: true,
     isBestSeller: true,
+    status: "approved",
   })
     .populate("designer", "fullName profilePicture")
     .sort({ soldCount: -1 })
@@ -54,7 +61,10 @@ export const getBestSellers = asyncHandler(async (req, res) => {
 
 // Lấy gói mới nhất
 export const getNewestServices = asyncHandler(async (req, res) => {
-  const services = await ServicePackage.find({ isActive: true })
+  const services = await ServicePackage.find({
+    isActive: true,
+    status: "approved",
+  })
     .populate("designer", "fullName profilePicture")
     .sort({ createdAt: -1 })
     .limit(8)
@@ -72,6 +82,7 @@ export const getFeaturedServices = asyncHandler(async (req, res) => {
   const services = await ServicePackage.find({
     isActive: true,
     isFeatured: true,
+    status: "approved",
   })
     .populate("designer", "fullName profilePicture")
     .sort({ createdAt: -1 })
@@ -92,6 +103,7 @@ export const getServiceBySlug = asyncHandler(async (req, res) => {
   const service = await ServicePackage.findOne({
     slug,
     isActive: true,
+    status: "approved",
   })
     .populate("designer", "fullName profilePicture")
     .select("-__v");
