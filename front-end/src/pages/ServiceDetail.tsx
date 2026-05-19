@@ -57,7 +57,10 @@ const ServiceDetail: React.FC = () => {
     }, [id]);
 
     // Hàm bổ trợ để lấy tên file từ đường dẫn lưu trong DB
-    const getFileName = (path: string) => path.split('/').pop();
+    const getFileName = (path: string) => {
+        if (!path) return "";
+        return path.split('/').pop() || ""; // Lấy "abcxyz.jpg" từ URL Cloudinary
+    };
 
     if (loading) return <div style={styles.centerMsg}>Đang tải dữ liệu...</div>;
     if (error) return <div style={{ ...styles.centerMsg, color: "red" }}>{error}</div>;

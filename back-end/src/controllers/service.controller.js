@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
+import axios from "axios";
+import cloudinary from "../configs/cloudinary.config.js";
 
 // Lấy tất cả gói dịch vụ với phân trang
 export const getAllServices = asyncHandler(async (req, res) => {
@@ -16,11 +18,11 @@ export const getAllServices = asyncHandler(async (req, res) => {
     isActive: true,
     status: "approved",
   })
-    .populate("designer", "fullName profilePicture")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .select("-__v");
+      .populate("designer", "fullName profilePicture")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select("-__v");
 
   const total = await ServicePackage.countDocuments({
     isActive: true,
@@ -52,10 +54,10 @@ export const getBestSellers = asyncHandler(async (req, res) => {
     isBestSeller: true,
     status: "approved",
   })
-    .populate("designer", "fullName profilePicture")
-    .sort({ soldCount: -1 })
-    .limit(8)
-    .select("-__v");
+      .populate("designer", "fullName profilePicture")
+      .sort({ soldCount: -1 })
+      .limit(8)
+      .select("-__v");
 
   res.status(200).json({
     success: true,
@@ -70,10 +72,10 @@ export const getNewestServices = asyncHandler(async (req, res) => {
     isActive: true,
     status: "approved",
   })
-    .populate("designer", "fullName profilePicture")
-    .sort({ createdAt: -1 })
-    .limit(8)
-    .select("-__v");
+      .populate("designer", "fullName profilePicture")
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .select("-__v");
 
   res.status(200).json({
     success: true,
@@ -89,10 +91,10 @@ export const getFeaturedServices = asyncHandler(async (req, res) => {
     isFeatured: true,
     status: "approved",
   })
-    .populate("designer", "fullName profilePicture")
-    .sort({ createdAt: -1 })
-    .limit(8)
-    .select("-__v");
+      .populate("designer", "fullName profilePicture")
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .select("-__v");
 
   res.status(200).json({
     success: true,
@@ -110,8 +112,8 @@ export const getServiceBySlug = asyncHandler(async (req, res) => {
     isActive: true,
     status: "approved",
   })
-    .populate("designer", "fullName profilePicture")
-    .select("-__v");
+      .populate("designer", "fullName profilePicture")
+      .select("-__v");
 
   if (!service) {
     return res.status(404).json({
@@ -152,36 +154,51 @@ export const getServiceDetail = async (req, res) => {
   }
 };
 
-// Xử lý đóng dấu Watermark mật độ cao
+// Lấy ảnh và đóng dấu watermark
 export const getProtectedImage = async (req, res) => {
   try {
     const { fileName } = req.params;
-    const filePath = path.join(process.cwd(), "public", "uploads", fileName);
-    if (!fs.existsSync(filePath)) return res.status(404).json({ message: "Không tìm thấy ảnh" });
 
-    // Cấu hình chữ "creatify" mờ lặp lại trên ảnh
+    // Vì trong DB lưu URL đầy đủ, nên tìm lại URL đó dựa vào fileName
+    // fileName chính là phần cuối của URL
+    // Giả sử URL: https://res.cloudinary.com/.../creatify_products/abcxyz.jpg
+    const service = await Service.findOne({ images: { $regex: fileName } });
+    if (!service) return res.status(404).send("Không tìm thấy ảnh");
+
+    // Lấy URL ảnh gốc từ Cloudinary
+    const originalUrl = service.images.find(img => img.includes(fileName));
+
+    // Tải ảnh từ Cloudinary về dưới dạng Buffer
+    const response = await axios.get(originalUrl, { responseType: 'arraybuffer' });
+    const inputBuffer = Buffer.from(response.data);
+
+    // --- CẤU HÌNH WATERMARK ---
     const svgWatermark = `
             <svg width="150" height="100">
                 <style>.mark { fill: white; fill-opacity: 0.25; font-weight: bold; font-size: 24px; }</style>
                 <text x="50%" y="50%" class="mark" text-anchor="middle" transform="rotate(-30, 75, 50)">creatify</text>
             </svg>`;
 
-    const processedImage = await sharp(filePath)
+    const processedImage = await sharp(inputBuffer)
         .resize(1200)
         .webp({ quality: 70 })
         .composite([{
           input: Buffer.from(svgWatermark),
-          tile: true, // Kích hoạt chế độ lặp lại mật độ cao [cite: 248]
+          tile: true,
           gravity: 'northwest'
         }])
         .toBuffer();
 
     res.set("Content-Type", "image/webp");
+    res.set("Cache-Control", "public, max-age=86400");
     res.send(processedImage);
+
   } catch (error) {
+    console.error("Lỗi xử lý ảnh:", error);
     res.status(500).send("Lỗi xử lý ảnh");
   }
 };
+
 
 // Tạo Service mới & Lưu các ảnh gốc
 export const createService = async (req, res) => {
@@ -189,27 +206,31 @@ export const createService = async (req, res) => {
     const { title, price, description, designerId } = req.body;
     const files = req.files;
     const imagePaths = [];
-    const uploadPath = path.resolve("public/uploads");
-    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
+    // Upload từng file lên Cloudinary
+    for (const file of files) {
+      // Chuyển buffer thành base64 để upload
+      const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
 
-    // Xử lý tất cả các file được gửi lên
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      // Thêm i vào tên file để tránh trùng lặp nếu upload nhiều ảnh cùng 1 miligiây
-      const fileName = `${Date.now()}-${i}-${file.originalname}`;
-      const outputPath = path.join(uploadPath, fileName);
+      const uploadResponse = await cloudinary.uploader.upload(fileBase64, {
+        folder: "creatify_services", // Thư mục trên Cloudinary
+        resource_type: "image"
+      });
 
-      fs.writeFileSync(outputPath, file.buffer);
-      imagePaths.push(`/uploads/${fileName}`);
+      // Lưu secure_url hoặc public_id. Ở đây lưu secure_url để dễ quản lý
+      imagePaths.push(uploadResponse.secure_url);
     }
 
     const newService = await Service.create({
-      title, price, description,
+      title,
+      price,
+      description,
       designerId,
-      images: imagePaths // Mảng này sẽ chứa toàn bộ đường dẫn ảnh đã upload
+      images: imagePaths
     });
-    res.status(201).json({ message: "Thành công", service: newService });
+
+    res.status(201).json({ message: "Tạo sản phẩm thành công", service: newService });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi tạo", error: error.message });
+    res.status(500).json({ message: "Lỗi tạo sản phẩm", error: error.message });
   }
 };
+
