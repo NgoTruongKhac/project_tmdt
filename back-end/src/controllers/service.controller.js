@@ -3,8 +3,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Service } from "../models/service.model.js";
 import mongoose from "mongoose";
 import sharp from "sharp";
-import path from "path";
-import fs from "fs";
 import axios from "axios";
 import cloudinary from "../configs/cloudinary.config.js";
 

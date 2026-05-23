@@ -17,6 +17,7 @@ import cors from "cors";
 import passport from "passport";
 import "./src/configs/passport.config.js";
 import adminRoutes from "./src/routes/admin.route.js";
+import paymentRouter from "./src/routes/payment.route.js";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use('/uploads', express.static('public/uploads'));
+app.use("/api/v1/payments", paymentRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
