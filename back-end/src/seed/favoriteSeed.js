@@ -23,8 +23,8 @@ export const seedFavorites = async () => {
     }
     
     // Xóa dữ liệu cũ
-    await Favorite.deleteMany({});
-    console.log("Đã xóa dữ liệu yêu thích cũ");
+    //await Favorite.deleteMany({});
+    //console.log("Đã xóa dữ liệu yêu thích cũ");
     
     // Tạo dữ liệu yêu thích mẫu
     const favoriteData = [];

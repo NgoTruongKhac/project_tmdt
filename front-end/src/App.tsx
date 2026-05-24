@@ -17,6 +17,9 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
 import { Toaster } from "react-hot-toast";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ServiceDetail from "./pages/ServiceDetail";
+import Order from "./pages/Order";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -38,11 +41,13 @@ function App() {
         />
         <Routes>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="/favorites" element={<Favorites />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/rewards" element={<Rewards />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/service/:id" element={<ServiceDetail />} />
+              <Route path="/order" element={<Order />} />
           </Route>
 
           <Route path="/login" element={<Login />} />
@@ -50,6 +55,7 @@ function App() {
           <Route path="/auth-google" element={<AuthGoogle />} />
 
           <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="services" element={<AdminServices />} />
           </Route>

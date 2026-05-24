@@ -146,15 +146,15 @@ export const seedServices = async () => {
         email: "designer@example.com",
         password: "hashedpassword", // Trong thực tế cần hash
         fullName: "Designer Mẫu",
-        role: "designer",
+        role: "DESIGNER",
         isVerified: true
       });
       console.log("Đã tạo designer mẫu");
     }
 
     // Xóa dữ liệu cũ
-    await Service.deleteMany({});
-    console.log("Đã xóa dữ liệu Service cũ");
+    //await Service.deleteMany({});
+    //console.log("Đã xóa dữ liệu Service cũ");
 
     // Tạo dữ liệu mới với designerId
     const servicesData = sampleServices.map(service => ({

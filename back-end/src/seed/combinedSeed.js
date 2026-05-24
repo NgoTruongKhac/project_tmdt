@@ -277,7 +277,7 @@ export const seedCombinedServices = async () => {
     await connectDB();
     
     // Tìm hoặc tạo designer
-    let designer = await User.findOne({ role: "designer" });
+    let designer = await User.findOne({ role: "DESIGNER" });
     
     if (!designer) {
       designer = await User.create({
@@ -285,16 +285,16 @@ export const seedCombinedServices = async () => {
         email: "designer@example.com",
         password: "hashedpassword",
         fullName: "Designer Mẫu",
-        role: "designer",
+        role: "DESIGNER",
         isVerified: true
       });
       console.log("Đã tạo designer mẫu");
     }
     
     // Xóa dữ liệu cũ
-    await Service.deleteMany({});
-    await ServicePackage.deleteMany({});
-    console.log("Đã xóa dữ liệu cũ của cả Service và ServicePackage");
+    //await Service.deleteMany({});
+    //await ServicePackage.deleteMany({});
+    //console.log("Đã xóa dữ liệu cũ của cả Service và ServicePackage");
 
     // Tạo dữ liệu mới
     const servicesData = createSampleData();
