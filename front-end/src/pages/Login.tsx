@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { loginWithGoogle } from "@/api/authApi";
 
 import z from "zod";
+import toast from "react-hot-toast";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
@@ -26,14 +27,10 @@ export default function Login() {
     try {
       await login(data.email, data.password);
 
+      toast.success("Đăng nhập thành công");
       window.location.replace("/");
     } catch (error: any) {
-      if (error.response?.data) {
-        setError("password", {
-          type: "manual",
-          message: error.response.data.message,
-        });
-      }
+      toast.error("Đăng nhập thất bại");
     }
   };
 

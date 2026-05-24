@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import MainLayout from "./layouts/MainLayout";
 import AuthGoogle from "./pages/AuthGoogle";
 import Profile from "./pages/Profile";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -16,6 +17,13 @@ function App() {
   }, [checkAuthStatus]);
   return (
     <>
+      <Toaster
+        position="bottom-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />

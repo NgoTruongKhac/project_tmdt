@@ -48,6 +48,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       await get().fetchCurrentUser();
     } catch (error) {
       console.log(error);
+      throw error;
     }
   },
   logout: () => {
