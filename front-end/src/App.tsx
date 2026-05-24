@@ -16,6 +16,7 @@ import Rewards from "./pages/Rewards";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
+import { Toaster } from "react-hot-toast";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ServiceDetail from "./pages/ServiceDetail";
 import Order from "./pages/Order";
@@ -31,6 +32,13 @@ function App() {
   return (
     <FavoriteProvider>
       <RewardProvider>
+        <Toaster
+          position="bottom-center"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
         <Routes>
           <Route element={<MainLayout />}>
               <Route path="/" element={<Home />} />

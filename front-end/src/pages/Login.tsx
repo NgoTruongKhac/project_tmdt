@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { loginWithGoogle } from "@/api/authApi";
 
 import z from "zod";
+import toast from "react-hot-toast";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
@@ -26,14 +27,10 @@ export default function Login() {
     try {
       await login(data.email, data.password);
 
+      toast.success("Đăng nhập thành công");
       window.location.replace("/");
     } catch (error: any) {
-      if (error.response?.data) {
-        setError("password", {
-          type: "manual",
-          message: error.response.data.message,
-        });
-      }
+      toast.error("Đăng nhập thất bại");
     }
   };
 
@@ -43,7 +40,11 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-24 bg-white shadow-soft lg:shadow-none z-10 rounded-t-3xl mt-12 lg:mt-0 lg:rounded-none">
         {/* Logo hiển thị trên Mobile (bị ẩn phần intro bên phải nên cần hiện ở đây) */}
         <div className="lg:hidden flex justify-center mb-8">
-          <img src={logo_full} alt="logo" className="h-14 w-auto drop-shadow-md" />
+          <img
+            src={logo_full}
+            alt="logo"
+            className="h-14 w-auto drop-shadow-md"
+          />
         </div>
 
         <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border rounded-2xl">
