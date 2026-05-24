@@ -1,12 +1,16 @@
-import { Search, Bell, User, LogOut } from "lucide-react";
+import { Search, Bell, User, LogOut, Heart, Crown } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useFavorite } from "@/contexts/FavoriteContext";
+import { useReward } from "@/contexts/RewardContext";
 
 export default function Navbar() {
   // Lấy thông tin user từ Zustand store
   const user = useAuthStore((state) => state.user);
   const { logout } = useAuthStore();
+  const { favoriteCount } = useFavorite();
+  const { points, membershipLevel } = useReward();
 
   const handleLogout = () => {
     logout();
@@ -29,35 +33,48 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* 2. Phần Input Search (Ở giữa) - Ẩn trên mobile, hiện từ màn lg */}
+      {/* 2. Phần Input Search (Đã bị xoá) */}
       <div className="navbar-center hidden lg:flex w-full max-w-md">
-        <div className="relative w-full group">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-            <Search className="w-5 h-5 text-neutral-400 group-focus-within:text-primary transition-colors" />
-          </div>
-          <input
-            type="text"
-            placeholder="Tìm kiếm nội dung..."
-            className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
-          />
-        </div>
       </div>
 
       {/* 3. Phần Icons và Nút xác thực (Bên phải) */}
       <div className="navbar-end flex items-center gap-1 sm:gap-2">
-        {/* Nút tìm kiếm (Chỉ hiện ở mobile) */}
-        <button className="btn btn-ghost btn-circle lg:hidden text-neutral-600 hover:text-primary hover:bg-primary-50">
-          <Search className="w-5 h-5" />
-        </button>
+
 
         {/* Icon Bell hiển thị khi đã đăng nhập (Giữ nguyên, tự động hoạt động trên cả mobile và desktop) */}
         {user && (
-          <button
-            className="btn btn-ghost btn-circle text-neutral-600 hover:text-primary hover:bg-primary-50 transition-colors"
-            title="Cài đặt"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
+          <>
+            <button
+              className="btn btn-ghost btn-circle text-neutral-600 hover:text-primary hover:bg-primary-50 transition-colors"
+              title="Thông báo"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+
+            {/* Icon Heart - Favorites */}
+            <Link
+              to="/favorites"
+              className="btn btn-ghost btn-circle text-neutral-600 hover:text-red-500 hover:bg-red-50 transition-colors relative"
+              title="Yêu thích"
+            >
+              <Heart className="w-5 h-5" />
+              {favoriteCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  {favoriteCount > 99 ? "99+" : favoriteCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Reward Points */}
+            <Link
+              to="/rewards"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors font-medium text-sm ml-1 border border-amber-200"
+              title={`Hạng: ${membershipLevel}`}
+            >
+              <Crown className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <span>{points} điểm</span>
+            </Link>
+          </>
         )}
 
         {/* --- CẬP NHẬT: Xử lý Avatar và Menu Đăng nhập/Đăng ký --- */}

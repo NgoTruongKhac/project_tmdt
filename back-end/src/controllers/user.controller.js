@@ -167,6 +167,8 @@ export const transferRoleDesigner = async (req, res, next) => {
     return res.status(201).json({
       message: "Transfer role designer successfully",
       designer,
+      role: user.role,  
+      isActive: user.isActive
     });
   } catch (error) {
     next(error);

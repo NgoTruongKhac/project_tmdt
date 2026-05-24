@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node src/seed/serviceSeed.js",
+    "seed:favorites": "node src/seed/favoriteSeed.js",
+    "seed:combined": "node src/seed/combinedSeed.js"
   },
   "author": "",
   "license": "ISC",
@@ -23,8 +26,10 @@
     "mongoose": "^9.4.1",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
-    "nodemon": "^3.1.14",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
