@@ -1,9 +1,10 @@
 import moment from "moment";
 import crypto from "crypto";
-import qs from "qs";
 import { Payment } from "../models/payment.model.js";
 import { Service } from "../models/service.model.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
+import axios from "axios";
+import sharp from "sharp";
 
 // Thông tin Merchant mới bạn cung cấp
 const VNP_TMNCODE = "5A8YSOL6";
@@ -131,5 +132,73 @@ export const vnpayReturn = async (req, res, next) => {
         res.status(400).json({ message: "Chữ ký trả về không hợp lệ" });
     } catch (error) {
         next(error);
+    }
+};
+
+export const downloadServiceFile = async (req, res, next) => {
+    try {
+        const { orderId, format } = req.params;
+        const userId = req.userId; // Lấy từ verifyToken
+
+        // 1. Kiểm tra đơn hàng trong DB
+        const payment = await Payment.findOne({ orderId, userId, status: "success" });
+        if (!payment) {
+            return res.status(403).json({ message: "Bạn chưa thanh toán cho dịch vụ này hoặc mã đơn hàng không hợp lệ." });
+        }
+
+        // 2. Lấy thông tin dịch vụ để lấy URL ảnh gốc
+        const service = await Service.findById(payment.serviceId);
+        if (!service || !service.images.length) {
+            return res.status(404).json({ message: "Không tìm thấy file thiết kế." });
+        }
+
+        const originalUrl = service.images[0]; // Lấy ảnh đầu tiên làm file chính
+
+        // 3. Tải ảnh từ Cloudinary về Buffer
+        const response = await axios.get(originalUrl, { responseType: 'arraybuffer' });
+        const inputBuffer = Buffer.from(response.data);
+
+        let processedImage = sharp(inputBuffer);
+
+        // 4. Chuyển đổi định dạng theo yêu cầu (KHÔNG composite watermark)
+        let contentType = "";
+        let extension = "";
+
+        switch (format.toLowerCase()) {
+            case "png":
+                processedImage = processedImage.png();
+                contentType = "image/png";
+                extension = "png";
+                break;
+            case "jpg":
+            case "jpeg":
+                processedImage = processedImage.jpeg({ quality: 100 });
+                contentType = "image/jpeg";
+                extension = "jpg";
+                break;
+            case "webp":
+                processedImage = processedImage.webp({ quality: 100 });
+                contentType = "image/webp";
+                extension = "webp";
+                break;
+            default:
+                return res.status(400).json({ message: "Định dạng không hỗ trợ." });
+        }
+
+        const outputBuffer = await processedImage.toBuffer();
+
+        // 5. Trả file về trình duyệt để tải xuống
+        const fileName = `Creatify_${orderId}.${extension}`;
+        res.set({
+            "Content-Type": contentType,
+            "Content-Disposition": `attachment; filename="${fileName}"`,
+            "Content-Length": outputBuffer.length,
+        });
+
+        res.send(outputBuffer);
+
+    } catch (error) {
+        console.error("Lỗi tải file:", error);
+        res.status(500).json({ message: "Lỗi hệ thống khi xử lý file." });
     }
 };
