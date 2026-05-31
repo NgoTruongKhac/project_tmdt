@@ -6,6 +6,8 @@ import {
     toggleUserStatus,
     getAdminServices,
     updateServiceStatus,
+    getAdminOrders,
+    updateOrderStatus,
 } from "../controllers/admin.controller.js";
 
 const router = express.Router();
@@ -21,5 +23,9 @@ router.patch("/users/:id/status", toggleUserStatus);
 router.get("/services", getAdminServices);
 
 router.patch("/services/:id/status", updateServiceStatus);
+
+router.get("/orders", getAdminOrders);
+
+router.patch("/orders/:id/status", updateOrderStatus);
 
 export default router;

@@ -56,6 +56,7 @@ export default function AdminServices() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | ServiceStatus>("all");
+    const [currentPage, setCurrentPage] = useState(1);
     const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [rejectTargetId, setRejectTargetId] = useState<string | null>(null);
@@ -125,6 +126,17 @@ export default function AdminServices() {
             return (b.price || 0) - (a.price || 0); // price desc
         });
     }, [searchTerm, services, statusFilter]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredServices.length / 10));
+    const ITEMS_PER_PAGE = 10;
+    const paginatedServices = filteredServices.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE,
+    );
 
     const updateServiceStatus = (serviceId: string, status: ServiceStatus) => {
         setServices((prev) =>
@@ -267,7 +279,7 @@ export default function AdminServices() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredServices.map((service) => {
+                                paginatedServices.map((service) => {
                                     const status = normalizeStatus(service.status);
                                     const serviceName = service.name || service.title || "Chưa có tên";
                                     const isBusy = activeServiceId === service._id;
@@ -372,6 +384,33 @@ export default function AdminServices() {
                         </tbody>
                     </table>
                 </div>
+
+                {!isLoading && filteredServices.length > 0 && (
+                    <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-sm text-gray-600">
+                            Trang <span className="font-semibold text-gray-900">{currentPage}</span> / {totalPages}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                disabled={currentPage === 1}
+                                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Trước
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                disabled={currentPage === totalPages}
+                                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Sau
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {isRejectModalOpen && (

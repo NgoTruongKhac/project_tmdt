@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 const orderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
+        ref: "User",
         required: true
     },
-    products: [
+    services: [
         {
-            product: {
+            service: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "product"
+                ref: "ServicePackage"
             },
             quantity: {
                 type: Number,
@@ -24,7 +24,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "paid"],
+        enum: ["pending", "paid", "completed", "cancelled"],
         default: "pending"
     }
 }, { timestamps: true });

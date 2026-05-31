@@ -1,5 +1,6 @@
 import { User } from "../models/user.model.js";
 import { ServicePackage } from "../models/servicePackage.model.js";
+import Order from "../models/order.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 
@@ -118,6 +119,48 @@ export const updateServiceStatus = asyncHandler(async (req, res) => {
             name: servicePackage.name,
             status: servicePackage.status,
             rejectReason: servicePackage.rejectReason,
+        },
+    });
+});
+
+export const getAdminOrders = asyncHandler(async (req, res) => {
+    const orders = await Order.find()
+        .populate("user", "fullName email")
+        .populate("services.service", "name price thumbnail")
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({
+        success: true,
+        message: "Lấy danh sách đơn hàng thành công",
+        data: orders,
+    });
+});
+
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["pending", "paid", "completed", "cancelled"];
+
+    if (!allowedStatuses.includes(status)) {
+        throw new ErrorHandler("Trạng thái không hợp lệ", 400);
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+        throw new ErrorHandler("Không tìm thấy đơn hàng", 404);
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Cập nhật trạng thái đơn hàng thành công",
+        data: {
+            id: order._id,
+            status: order.status,
         },
     });
 });
