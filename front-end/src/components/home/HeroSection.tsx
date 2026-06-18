@@ -20,12 +20,20 @@ interface HeroSectionProps {
   handleClearSearch: () => void;
 }
 
+const formatCategoryLabel = (category: string) => {
+  if (category === "all") return "Tất cả";
+
+  return category
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function HeroSection({
   onSearch,
   onCategoryChange,
   serviceQuery,
   setServiceQuery,
-  serviceCategory: _serviceCategory,
   serviceCategories,
   minPrice,
   setMinPrice,
@@ -206,14 +214,7 @@ export default function HeroSection({
                       : 'bg-white/80 backdrop-blur-sm text-neutral-700 hover:bg-white border border-neutral-200'
                       }`}
                   >
-                    {category === 'Tất cả' ? 'Tất cả' :
-                      category === 'poster' ? 'Poster' :
-                        category === 'banner' ? 'Banner' :
-                          category === 'social-media' ? 'Social Media' :
-                            category === 'business' ? 'Business' :
-                              category === 'event' ? 'Event' :
-                                category === 'combo' ? 'Combo' :
-                                  category === 'other' ? 'Khác' : category}
+                    {formatCategoryLabel(category)}
                   </button>
                 ))}
               </div>

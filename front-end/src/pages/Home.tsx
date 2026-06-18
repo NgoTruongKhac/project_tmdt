@@ -1,7 +1,8 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader, Search, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
+import { getServiceCategories } from "@/api/serviceApi";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturedSection from "@/components/home/FeaturedSection";
 import BestSellerSlider from "@/components/home/BestSellerSlider";
@@ -31,6 +32,17 @@ interface Service {
   };
 }
 
+const ALL_CATEGORY = "all";
+
+const formatCategoryLabel = (category: string) => {
+  if (category === ALL_CATEGORY) return "Tất cả";
+
+  return category
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function Home() {
   const [showSearch, setShowSearch] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
@@ -42,27 +54,30 @@ export default function Home() {
   const [isServiceLoading, setIsServiceLoading] = useState(false);
   const [isDesignerLoading, setIsDesignerLoading] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [serviceCategories, setServiceCategories] = useState<string[]>([ALL_CATEGORY]);
   const isLoading = isServiceLoading || isDesignerLoading;
 
-  const serviceCategories = [
-    'Tất cả',
-    'poster',
-    'banner',
-    'social-media',
-    'business',
-    'event',
-    'combo',
-    'other',
-  ];
-
   const MAX_PRICE = 20000000;
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await getServiceCategories();
+        setServiceCategories([ALL_CATEGORY, ...response.data]);
+      } catch (error) {
+        console.error("Error fetching service categories:", error);
+      }
+    };
+
+    void fetchCategories();
+  }, []);
 
   const fetchServices = async (category: string = serviceCategory, keyword: string = serviceQuery) => {
     setIsServiceLoading(true);
     try {
       const params = new URLSearchParams();
       if (keyword) params.append('keyword', keyword);
-      if (category && category !== 'Tất cả') params.append('category', category);
+      if (category && category !== ALL_CATEGORY) params.append('category', category);
       if (minPrice) params.append('minPrice', minPrice);
       if (maxPrice) params.append('maxPrice', maxPrice);
 
@@ -105,9 +120,9 @@ export default function Home() {
   };
 
   const handleCategoryChange = (category: string) => {
-    setServiceCategory(category);
+    const normalizedCategory = category === ALL_CATEGORY ? '' : category;
+    setServiceCategory(normalizedCategory);
     setShowSearch(true);
-    const normalizedCategory = category === 'Tất cả' ? '' : category;
     void fetchServices(normalizedCategory, serviceQuery);
   };
 
@@ -119,7 +134,9 @@ export default function Home() {
 
   const handleClearSearch = () => {
     setServiceQuery('');
+    setServiceCategory('');
     setDesigners([]);
+    setServices([]);
     setShowSearch(false);
   };
 
@@ -127,7 +144,7 @@ export default function Home() {
     profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
 
   const activeCategory = (category: string) =>
-    (category === 'Tất cả' && !serviceCategory) || serviceCategory === category;
+    (category === ALL_CATEGORY && !serviceCategory) || serviceCategory === category;
 
   return (
     <div className="min-h-screen">
@@ -161,14 +178,7 @@ export default function Home() {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
-                    {category === 'Tất cả' ? 'Tất cả' :
-                      category === 'poster' ? 'Poster' :
-                        category === 'banner' ? 'Banner' :
-                          category === 'social-media' ? 'Social Media' :
-                            category === 'business' ? 'Business' :
-                              category === 'event' ? 'Event' :
-                                category === 'combo' ? 'Combo' :
-                                  category === 'other' ? 'Khác' : category}
+                    {formatCategoryLabel(category)}
                   </button>
                 ))}
               </div>

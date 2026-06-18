@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "seed": "node src/seed/serviceSeed.js",
     "seed:favorites": "node src/seed/favoriteSeed.js",
-    "seed:combined": "node src/seed/combinedSeed.js"
+    "seed:combined": "node src/seed/combinedSeed.js",
+    "seed:orders": "node src/seed/orderSeed.js"
   },
   "author": "",
   "license": "ISC",

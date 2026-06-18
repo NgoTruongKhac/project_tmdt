@@ -44,9 +44,20 @@ export interface ServiceListResponse {
   };
 }
 
+export interface ServiceCategoriesResponse {
+  success: boolean;
+  message: string;
+  data: string[];
+}
+
 // Lấy tất cả gói dịch vụ với phân trang
 export const getAllServices = async (page = 1, limit = 8): Promise<ServiceListResponse> => {
   const response = await api.get(`/services?page=${page}&limit=${limit}`);
+  return response.data;
+};
+
+export const getServiceCategories = async (): Promise<ServiceCategoriesResponse> => {
+  const response = await api.get("/services/categories");
   return response.data;
 };
 
