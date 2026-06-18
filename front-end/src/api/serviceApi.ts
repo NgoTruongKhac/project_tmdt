@@ -9,10 +9,13 @@ export interface ServicePackage {
   discountPrice?: number;
   category: string;
   thumbnail: string;
+  listingType: "hire" | "package" | "product";
   isBestSeller: boolean;
   isFeatured: boolean;
   isActive: boolean;
   soldCount: number;
+  revisions: number;
+  deliveryTime: number;
   createdAt: string;
   updatedAt: string;
   designer?: {
@@ -76,6 +79,21 @@ export const getNewestServices = async (): Promise<ServiceResponse> => {
 // Lấy gói nổi bật
 export const getFeaturedServices = async (): Promise<ServiceResponse> => {
   const response = await api.get("/services/featured");
+  return response.data;
+};
+
+export const getHireServices = async (): Promise<ServiceResponse> => {
+  const response = await api.get("/services/hire");
+  return response.data;
+};
+
+export const getPackageServices = async (): Promise<ServiceResponse> => {
+  const response = await api.get("/services/packages");
+  return response.data;
+};
+
+export const getProductServices = async (): Promise<ServiceResponse> => {
+  const response = await api.get("/services/products");
   return response.data;
 };
 

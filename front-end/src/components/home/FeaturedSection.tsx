@@ -32,59 +32,66 @@ export default function FeaturedSection() {
 
   if (error) {
     return (
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="px-6 py-10">
         <div className="max-w-7xl mx-auto">
-          <SectionTitle 
-            title="Gói Nổi Bật" 
-            subtitle="Những gói thiết kế được đề xuất dành riêng cho bạn"
-          />
+          <SectionTitle eyebrow="Được đề xuất riêng" title="Gói Nổi Bật" />
           <div className="text-center py-12">
             <div className="text-neutral-500 mb-4">⚠️ {error}</div>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="btn bg-primary-500 hover:bg-primary-600 text-white border-none"
-            >
-              Thử lại
-            </button>
+            <button onClick={() => window.location.reload()} className="btn bg-primary-500 hover:bg-primary-600 text-white border-none">Thử lại</button>
           </div>
         </div>
       </section>
     );
   }
 
+  const hero = services[0];
+  const tall1 = services[1];
+  const tall2 = services[2];
+  const wide = services[3];
+
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-neutral-50 to-white">
+    <section className="px-6 py-10">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle 
-          title="Gói Nổi Bật" 
-          subtitle="Những gói thiết kế được đề xuất dành riêng cho bạn"
-        />
-        
+        <SectionTitle eyebrow="Được đề xuất riêng" title="Gói Nổi Bật" />
+
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <ServiceCardSkeleton key={index} variant="featured" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <ServiceCardSkeleton key={i} variant="featured" />
             ))}
           </div>
         ) : services.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {services.slice(0, 4).map((service) => (
-              <ServiceCard
-                key={service._id}
-                service={service}
-                variant="featured"
-                showBadge={true}
-                badgeType="featured"
-              />
-            ))}
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: "2fr 1fr 1fr", gridTemplateRows: "auto auto" }}
+          >
+            {hero && (
+              <div style={{ gridColumn: "1", gridRow: "1 / 3" }}>
+                <ServiceCard service={hero} variant="featured" showBadge badgeType="featured" />
+              </div>
+            )}
+            {tall1 && (
+              <div style={{ gridColumn: "2", gridRow: "1" }}>
+                <ServiceCard service={tall1} showBadge badgeType="featured" />
+              </div>
+            )}
+            {tall2 && (
+              <div style={{ gridColumn: "3", gridRow: "1" }}>
+                <ServiceCard service={tall2} showBadge badgeType="featured" />
+              </div>
+            )}
+            {wide && (
+              <div style={{ gridColumn: "2 / 4", gridRow: "2" }}>
+                <ServiceCard service={wide} showBadge badgeType="featured" />
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="text-neutral-500 mb-4">Chưa có gói nổi bật nào</div>
+            <div className="text-neutral-500">Chưa có gói nổi bật nào</div>
           </div>
         )}
-        
-        {/* Toast Container for this section */}
+
         <ToastContainer toasts={toasts} onRemove={removeToast} />
       </div>
     </section>

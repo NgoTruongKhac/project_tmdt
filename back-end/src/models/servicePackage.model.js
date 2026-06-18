@@ -74,6 +74,11 @@ const ServicePackageSchema = new mongoose.Schema(
             enum: ["pending", "approved", "rejected"],
             default: "pending",
         },
+        listingType: {
+            type: String,
+            enum: ["hire", "package", "product"],
+            default: "package",
+        },
         revisions: {
             type: Number,
             default: 0,
@@ -103,6 +108,7 @@ ServicePackageSchema.index({isActive: 1});
 ServicePackageSchema.index({isBestSeller: 1, soldCount: -1});
 ServicePackageSchema.index({isFeatured: 1, isActive: 1});
 ServicePackageSchema.index({createdAt: -1});
+ServicePackageSchema.index({listingType: 1, isActive: 1});
 // Không cần index riêng cho slug vì đã có unique: true
 
 export const ServicePackage = mongoose.model("ServicePackage", ServicePackageSchema);

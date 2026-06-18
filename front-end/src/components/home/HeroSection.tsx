@@ -203,8 +203,8 @@ export default function HeroSection({
             </div>
 
             {/* Category Filter Buttons */}
-            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden">
-              <div className="flex gap-2 justify-center pb-2">
+            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden -mx-4 px-4">
+              <div className="flex gap-2 pb-2 w-max mx-auto">
                 {serviceCategories.map((category) => (
                   <button
                     key={category}

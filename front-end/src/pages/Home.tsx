@@ -8,6 +8,9 @@ import FeaturedSection from "@/components/home/FeaturedSection";
 import BestSellerSlider from "@/components/home/BestSellerSlider";
 import NewestSection from "@/components/home/NewestSection";
 import AllServicesSection from "@/components/home/AllServicesSection";
+import HireSection from "@/components/home/HireSection";
+import PackagesSection from "@/components/home/PackagesSection";
+import ProductsSection from "@/components/home/ProductsSection";
 
 interface Designer {
   _id: string;
@@ -211,14 +214,29 @@ export default function Home() {
             handleClearSearch={handleClearSearch}
           />
 
+          {/* Thuê Designer */}
+          <HireSection />
+          <hr className="border-none h-px bg-neutral-200 mx-6" />
+
+          {/* Gói Có Sẵn */}
+          <PackagesSection />
+          <hr className="border-none h-px bg-neutral-200 mx-6" />
+
+          {/* Sản Phẩm Số */}
+          <ProductsSection />
+          <hr className="border-none h-px bg-neutral-200 mx-6" />
+
           {/* Featured Services */}
           <FeaturedSection />
+          <hr className="border-none h-px bg-neutral-200 mx-6" />
 
           {/* Best Sellers */}
           <BestSellerSlider />
+          <hr className="border-none h-px bg-neutral-200 mx-6" />
 
           {/* Newest Services */}
           <NewestSection />
+          <hr className="border-none h-px bg-neutral-200 mx-6" />
 
           {/* All Services */}
           <AllServicesSection />

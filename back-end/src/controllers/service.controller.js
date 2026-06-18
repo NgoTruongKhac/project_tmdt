@@ -126,6 +126,60 @@ export const getFeaturedServices = asyncHandler(async (req, res) => {
   });
 });
 
+export const getHireServices = asyncHandler(async (req, res) => {
+  const services = await ServicePackage.find({
+    isActive: true,
+    status: "approved",
+    listingType: "hire",
+  })
+    .populate("designer", "fullName profilePicture")
+    .sort({ soldCount: -1 })
+    .limit(6)
+    .select("-__v");
+
+  res.status(200).json({
+    success: true,
+    message: "Lấy danh sách dịch vụ thuê designer thành công",
+    data: services.map(normalizeServicePackage),
+  });
+});
+
+export const getPackageServices = asyncHandler(async (req, res) => {
+  const services = await ServicePackage.find({
+    isActive: true,
+    status: "approved",
+    listingType: "package",
+  })
+    .populate("designer", "fullName profilePicture")
+    .sort({ soldCount: -1 })
+    .limit(8)
+    .select("-__v");
+
+  res.status(200).json({
+    success: true,
+    message: "Lấy danh sách gói thiết kế có sẵn thành công",
+    data: services.map(normalizeServicePackage),
+  });
+});
+
+export const getProductServices = asyncHandler(async (req, res) => {
+  const services = await ServicePackage.find({
+    isActive: true,
+    status: "approved",
+    listingType: "product",
+  })
+    .populate("designer", "fullName profilePicture")
+    .sort({ soldCount: -1 })
+    .limit(6)
+    .select("-__v");
+
+  res.status(200).json({
+    success: true,
+    message: "Lấy danh sách sản phẩm thiết kế thành công",
+    data: services.map(normalizeServicePackage),
+  });
+});
+
 export const getDesignerPackages = asyncHandler(async (req, res) => {
   const { designerId } = req.params;
 
