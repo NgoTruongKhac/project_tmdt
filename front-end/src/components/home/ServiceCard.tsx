@@ -1,324 +1,333 @@
 import type { ServicePackage } from "@/api/serviceApi";
-import { formatCurrency, formatDate } from "@/utils/format";
-import { Eye, ShoppingCart, Clock } from "lucide-react";
+import { formatCurrency } from "@/utils/format";
+
+import {
+    Eye,
+    ShoppingCart,
+} from "lucide-react";
+
 import FavoriteButton from "@/components/common/FavoriteButton";
 import { useToast } from "@/hooks/useToast";
+import DesignerHoverCard from "@/components/home/DesignerHoverCard";
+
+import { useEffect, useRef, useState } from "react";
 
 interface ServiceCardProps {
-  service: ServicePackage;
-  variant?: "default" | "featured" | "compact";
-  showBadge?: boolean;
-  badgeType?: "bestseller" | "new" | "featured";
+    service: ServicePackage;
+    variant?: "default" | "featured" | "compact";
+    showBadge?: boolean;
+    badgeType?: "bestseller" | "new" | "featured";
 }
 
-export default function ServiceCard({ 
-  service, 
-  variant = "default", 
-  showBadge = false,
-  badgeType = "bestseller"
-}: ServiceCardProps) {
-  const { showToast } = useToast();
-  
-  const getAvatarUrl = (fullName: string, profilePicture?: string) =>
-    profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
-  
-  const getBadgeContent = () => {
-    switch (badgeType) {
-      case "bestseller":
-        return {
-          text: "Bán chạy",
-          className: "bg-red-500 text-white"
-        };
-      case "new":
-        return {
-          text: "Mới",
-          className: "bg-green-500 text-white"
-        };
-      case "featured":
-        return {
-          text: "Nổi bật",
-          className: "bg-primary-500 text-white"
-        };
-      default:
-        return null;
-    }
-  };
+export default function ServiceCard({
+                                        service,
+                                        variant = "default",
+                                        showBadge = false,
+                                        badgeType = "bestseller",
+                                    }: ServiceCardProps) {
+    const { showToast } = useToast();
 
-  const badgeContent = getBadgeContent();
+    const [showDesignerCard, setShowDesignerCard] =
+        useState(false);
+    const [designerAnchorRect, setDesignerAnchorRect] =
+        useState<DOMRect | null>(null);
+    const designerAnchorRef = useRef<HTMLDivElement | null>(null);
+    const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  if (variant === "featured") {
+    const updateDesignerAnchorRect = () => {
+        setDesignerAnchorRect(
+            designerAnchorRef.current?.getBoundingClientRect() ?? null
+        );
+    };
+
+    const openDesignerCard = () => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+        }
+
+        updateDesignerAnchorRect();
+        setShowDesignerCard(true);
+    };
+
+    const closeDesignerCard = () => {
+        hoverTimeoutRef.current = setTimeout(() => {
+            setShowDesignerCard(false);
+        }, 180);
+    };
+
+    useEffect(() => {
+        if (!showDesignerCard) return;
+
+        const handleViewportChange = () => updateDesignerAnchorRect();
+
+        window.addEventListener("scroll", handleViewportChange, true);
+        window.addEventListener("resize", handleViewportChange);
+
+        return () => {
+            window.removeEventListener("scroll", handleViewportChange, true);
+            window.removeEventListener("resize", handleViewportChange);
+        };
+    }, [showDesignerCard]);
+
+    const getBadgeContent = () => {
+        switch (badgeType) {
+            case "bestseller":
+                return {
+                    text: "Bán chạy",
+                    className: "bg-red-500 text-white",
+                };
+
+            case "new":
+                return {
+                    text: "Mới",
+                    className: "bg-green-500 text-white",
+                };
+
+            case "featured":
+                return {
+                    text: "Nổi bật",
+                    className: "bg-primary-500 text-white",
+                };
+
+            default:
+                return null;
+        }
+    };
+
+    const badgeContent = getBadgeContent();
+    const views = service.views ?? 0;
+
     return (
-      <div className="group relative bg-white rounded-2xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 hover:border-primary-200">
-        {/* Badge */}
-        {showBadge && badgeContent && (
-          <div className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-medium ${badgeContent.className}`}>
-            {badgeContent.text}
-          </div>
-        )}
+        <div
+            className="
+      group relative overflow-hidden
+      rounded-3xl bg-neutral-100
+      cursor-pointer
+      break-inside-avoid mb-6
+    "
+        >
+            {/* BADGE */}
+            {showBadge && badgeContent && (
+                <div
+                    className={`
+            absolute top-4 left-4 z-30
+            px-3 py-1 rounded-full
+            text-xs font-medium
+            ${badgeContent.className}
+          `}
+                >
+                    {badgeContent.text}
+                </div>
+            )}
 
-        {/* Image */}
-        <div className="relative h-64 overflow-hidden">
-          <img
-            src={service.thumbnail}
-            alt={service.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Favorite Button */}
-          <FavoriteButton 
-            serviceId={service._id} 
-            variant="card"
-            showToast={showToast}
-          />
-        </div>
+            {/* IMAGE */}
+            <div
+                className={`
+        overflow-hidden
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="mb-3">
-            <span className="inline-block px-3 py-1 bg-primary-50 text-primary-600 text-xs font-medium rounded-full mb-2">
-              {service.category}
-            </span>
-            <h3 className="text-xl font-bold text-neutral-800 mb-2 group-hover:text-primary-600 transition-colors">
-              {service.name}
-            </h3>
-            <p className="text-neutral-600 text-sm line-clamp-2">
-              {service.description}
-            </p>
-            
-            {/* Designer Info */}
-            {service.designer && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-neutral-600">
+        ${
+                    variant === "compact"
+                        ? "aspect-[4/4]"
+                        : variant === "featured"
+                            ? "aspect-[4/5]"
+                            : "aspect-[4/5]"
+                }
+      `}
+            >
                 <img
-                  src={getAvatarUrl(service.designer.fullName, service.designer.profilePicture)}
-                  alt={service.designer.fullName}
-                  className="h-5 w-5 rounded-full object-cover"
+                    src={service.thumbnail}
+                    alt={service.name}
+                    className="
+            w-full h-full object-cover
+            transition duration-500
+            group-hover:scale-105
+          "
+                    onError={(e) => {
+                        const target =
+                            e.target as HTMLImageElement;
+
+                        target.src =
+                            "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400";
+                    }}
                 />
-                <span className="font-medium">{service.designer.fullName}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center gap-2 mb-4">
-            {service.discountPrice ? (
-              <>
-                <span className="text-2xl font-bold text-primary-600">
-                  {formatCurrency(service.discountPrice)}
-                </span>
-                <span className="text-lg text-neutral-400 line-through">
-                  {formatCurrency(service.price)}
-                </span>
-              </>
-            ) : (
-              <span className="text-2xl font-bold text-primary-600">
-                {formatCurrency(service.price)}
-              </span>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center justify-between text-sm text-neutral-500 mb-4">
-            <span className="flex items-center gap-1">
-              <ShoppingCart className="w-4 h-4" />
-              {service.soldCount} đã bán
-            </span>
-            <span className="flex items-center gap-1 text-xs text-neutral-400">
-              <Clock className="w-3 h-3" />
-              {formatDate(service.createdAt)}
-            </span>
-          </div>
-
-          {/* CTA Button */}
-          <button className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2">
-            <Eye className="w-4 h-4" />
-            Xem ngay
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === "compact") {
-    return (
-      <div className="group relative bg-white rounded-xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 hover:border-primary-200 hover:-translate-y-1">
-        {/* Badge */}
-        {showBadge && badgeContent && (
-          <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium ${badgeContent.className}`}>
-            {badgeContent.text}
-          </div>
-        )}
-
-        {/* Image */}
-        <div className="relative h-40 overflow-hidden">
-          <img
-            src={service.thumbnail}
-            alt={service.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
-            }}
-          />
-          
-          {/* Favorite Button */}
-          <FavoriteButton 
-            serviceId={service._id} 
-            variant="card"
-            showToast={showToast}
-          />
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          <div className="mb-3">
-            <h3 className="text-lg font-semibold text-neutral-800 mb-1 group-hover:text-primary-600 transition-colors line-clamp-1">
-              {service.name}
-            </h3>
-            <p className="text-neutral-600 text-sm line-clamp-2">
-              {service.description}
-            </p>
-            
-            {/* Designer Info */}
-            {service.designer && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-neutral-600">
-                <img
-                  src={getAvatarUrl(service.designer.fullName, service.designer.profilePicture)}
-                  alt={service.designer.fullName}
-                  className="h-4 w-4 rounded-full object-cover"
-                />
-                <span className="font-medium">{service.designer.fullName}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center gap-2 mb-3">
-            {service.discountPrice ? (
-              <>
-                <span className="text-lg font-bold text-primary-600">
-                  {formatCurrency(service.discountPrice)}
-                </span>
-                <span className="text-sm text-neutral-400 line-through">
-                  {formatCurrency(service.price)}
-                </span>
-              </>
-            ) : (
-              <span className="text-lg font-bold text-primary-600">
-                {formatCurrency(service.price)}
-              </span>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center justify-between text-xs text-neutral-500">
-            <span>{service.soldCount} đã bán</span>
-            <span className="flex items-center gap-1 text-xs text-neutral-400">
-              <Clock className="w-3 h-3" />
-              {formatDate(service.createdAt)}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Default variant
-  return (
-    <div className="group relative bg-white rounded-xl shadow-soft hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 hover:border-primary-200 hover:-translate-y-1">
-      {/* Badge */}
-      {showBadge && badgeContent && (
-        <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium ${badgeContent.className}`}>
-          {badgeContent.text}
-        </div>
-      )}
-
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={service.thumbnail}
-          alt={service.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop&crop=center";
-          }}
-        />
-        
-        {/* Favorite Button */}
-        <FavoriteButton 
-          serviceId={service._id} 
-          variant="card"
-          showToast={showToast}
-        />
-      </div>
-
-      {/* Content */}
-      <div className="p-5">
-        <div className="mb-3">
-          <span className="inline-block px-2 py-1 bg-primary-50 text-primary-600 text-xs font-medium rounded-full mb-2">
-            {service.category}
-          </span>
-          <h3 className="text-lg font-semibold text-neutral-800 mb-2 group-hover:text-primary-600 transition-colors line-clamp-1">
-            {service.name}
-          </h3>
-          <p className="text-neutral-600 text-sm line-clamp-2">
-            {service.description}
-          </p>
-          
-          {/* Designer Info */}
-          {service.designer && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
-              <img
-                src={getAvatarUrl(service.designer.fullName, service.designer.profilePicture)}
-                alt={service.designer.fullName}
-                className="h-5 w-5 rounded-full object-cover"
-              />
-              <span className="font-medium">{service.designer.fullName}</span>
             </div>
-          )}
-        </div>
 
-        {/* Price */}
-        <div className="flex items-center gap-2 mb-3">
-          {service.discountPrice ? (
-            <>
-              <span className="text-xl font-bold text-primary-600">
-                {formatCurrency(service.discountPrice)}
-              </span>
-              <span className="text-sm text-neutral-400 line-through">
+            {/* FAVORITE */}
+            <div className="absolute top-4 right-4 z-30">
+                <FavoriteButton
+                    serviceId={service._id}
+                    variant="card"
+                    showToast={showToast}
+                />
+            </div>
+
+            {/* OVERLAY */}
+            <div
+                className="
+        absolute inset-0
+        bg-gradient-to-t
+        from-black/90
+        via-black/20
+        to-transparent
+
+        opacity-0
+        group-hover:opacity-100
+
+        transition-all duration-300
+
+        p-4
+        flex flex-col justify-between
+        pointer-events-none
+      "
+            >
+                {/* BOTTOM */}
+                <div className="pointer-events-auto">
+                    {/* DESIGNER */}
+                    {service.designer && (
+                        <div
+                            ref={designerAnchorRef}
+                            className={`relative w-fit ${
+                                showBadge && badgeContent ? "mt-10" : ""
+                            }`}
+                            onMouseEnter={openDesignerCard}
+                            onMouseLeave={closeDesignerCard}
+                        >
+                            <button
+                                type="button"
+                                className="
+                flex items-center gap-2
+                mb-3
+              "
+                            >
+                                <img
+                                    src={
+                                        service.designer.profilePicture ||
+                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                            service.designer.fullName
+                                        )}`
+                                    }
+                                    alt={
+                                        service.designer.fullName
+                                    }
+                                    className="
+                    w-10 h-10 rounded-full
+                    border-2 border-white
+                    object-cover
+                  "
+                                />
+
+                                <span
+                                    className="
+                  text-white font-medium
+                "
+                                >
+                  {service.designer.fullName}
+                </span>
+                            </button>
+
+                            {showDesignerCard && (
+                                <DesignerHoverCard
+                                    anchorRect={
+                                        designerAnchorRect
+                                    }
+                                    designerId={
+                                        service.designer._id
+                                    }
+                                    designerName={
+                                        service.designer.fullName
+                                    }
+                                    profilePicture={
+                                        service.designer
+                                            .profilePicture
+                                    }
+                                    onMouseEnter={
+                                        openDesignerCard
+                                    }
+                                    onMouseLeave={
+                                        closeDesignerCard
+                                    }
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    {/* TITLE */}
+                    <h3
+                        className="
+            text-white text-xl
+            font-bold mb-2
+            line-clamp-2
+          "
+                    >
+                        {service.name}
+                    </h3>
+
+                    {/* CATEGORY */}
+                    <p
+                        className="
+            text-white/70 text-sm
+            uppercase tracking-wider
+            mb-3
+          "
+                    >
+                        {service.category}
+                    </p>
+
+                    {/* STATS */}
+                    <div
+                        className="
+            flex items-center gap-4
+            text-white/80 text-sm
+            mb-4
+          "
+                    >
+                        <div className="flex items-center gap-1">
+                            <ShoppingCart className="w-4 h-4" />
+                            {service.soldCount}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <Eye className="w-4 h-4" />
+                            {views}
+                        </div>
+                    </div>
+
+                    {/* PRICE */}
+                    <div className="flex items-center gap-2">
+                        {service.discountPrice ? (
+                            <>
+                <span
+                    className="
+                  text-white text-2xl font-bold
+                "
+                >
+                  {formatCurrency(
+                      service.discountPrice
+                  )}
+                </span>
+
+                                <span
+                                    className="
+                  text-white/50 line-through
+                "
+                                >
+                  {formatCurrency(
+                      service.price
+                  )}
+                </span>
+                            </>
+                        ) : (
+                            <span
+                                className="
+                text-white text-2xl font-bold
+              "
+                            >
                 {formatCurrency(service.price)}
               </span>
-            </>
-          ) : (
-            <span className="text-xl font-bold text-primary-600">
-              {formatCurrency(service.price)}
-            </span>
-          )}
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
-
-        {/* Stats */}
-        <div className="flex items-center justify-between text-sm text-neutral-500 mb-4">
-          <span className="flex items-center gap-1">
-            <ShoppingCart className="w-4 h-4" />
-            {service.soldCount}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-neutral-400">
-            <Clock className="w-3 h-3" />
-            {formatDate(service.createdAt)}
-          </span>
-        </div>
-
-        {/* CTA Button */}
-        <button className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-          <Eye className="w-4 h-4" />
-          Xem chi tiết
-        </button>
-      </div>
-    </div>
-  );
+    );
 }

@@ -1,39 +1,22 @@
 import express from "express";
-import Order from "../models/order.model.js";
-import { Product } from "../models/product.model.js";
+import { verifyToken } from "../middlewares/auth/auth.middleware.js";
+import { validate } from "../middlewares/validations/validate.middleware.js";
+import {
+  getMyOrdersValidationRules,
+  cancelOrderValidationRules,
+} from "../middlewares/validations/order.validation.js";
+import { getMyOrders, cancelOrder } from "../controllers/order.controller.js";
 
 const router = express.Router();
 
-// Mua ngay
-router.post("/buy-now", async (req, res) => {
-    try {
-        const { productId } = req.body;
+router.get("/me", verifyToken, validate(getMyOrdersValidationRules), getMyOrders);
 
-        const product = await Product.findById(productId);
+router.patch(
+  "/:orderId/cancel",
+  verifyToken,
+  validate(cancelOrderValidationRules),
+  cancelOrder
+);
 
-        if (!product) {
-            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
-        }
-
-        const order = await Order.create({
-            user: req.user?.id || null, // nếu chưa có auth thì tạm null
-            products: [
-                {
-                    product: productId,
-                    quantity: 1
-                }
-            ],
-            totalPrice: product.price
-        });
-
-        res.json({
-            message: "Mua thành công",
-            order
-        });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
+export { router as orderRouter };
 export default router;

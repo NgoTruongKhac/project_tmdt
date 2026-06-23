@@ -1,26 +1,34 @@
+import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Favorites from "./pages/Favorites";
-import { useAuthStore } from "./stores/useAuthStore";
-import { useEffect } from "react";
-import MainLayout from "./layouts/MainLayout";
-import AuthGoogle from "./pages/AuthGoogle";
-import Profile from "./pages/Profile";
-import { FavoriteProvider } from "./contexts/FavoriteContext";
-import { RewardProvider } from "./contexts/RewardContext";
-import { useToast } from "./hooks/useToast";
-import { ToastContainer } from "./components/common/Toast";
 import Rewards from "./pages/Rewards";
-import AdminLayout from "./layouts/AdminLayout";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminServices from "./pages/admin/AdminServices";
-import { Toaster } from "react-hot-toast";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+import Profile from "./pages/Profile";
+import AuthGoogle from "./pages/AuthGoogle";
+import MyOrders from "./pages/MyOrders";
+import OrderHistory from "./pages/OrderHistory";
+import ServiceMarketplace from "./pages/ServiceMarketplace";
 import ServiceDetail from "./pages/ServiceDetail";
 import Order from "./pages/Order";
+import DesignerServices from "./pages/DesignerServices";
+import DesignerProfile from "./pages/DesignerProfile";
+
+import MainLayout from "./layouts/MainLayout";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminServices from "./pages/admin/AdminServices";
 import AdminOrders from "./pages/admin/AdminOrders";
+
+import { FavoriteProvider } from "./contexts/FavoriteContext";
+import { RewardProvider } from "./contexts/RewardContext";
+import { ToastContainer } from "./components/common/Toast";
+import { useToast } from "./hooks/useToast";
+import { useAuthStore } from "./stores/useAuthStore";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -36,17 +44,20 @@ function App() {
         <Toaster
           position="bottom-center"
           reverseOrder={false}
-          toastOptions={{
-            duration: 3000,
-          }}
+          toastOptions={{ duration: 3000 }}
         />
+
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/rewards" element={<Rewards />} />
-            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/my-orders" element={<MyOrders />} />
+            <Route path="/orders" element={<OrderHistory />} />
+            <Route path="/services-marketplace" element={<ServiceMarketplace />} />
+            <Route path="/designer/:designerId" element={<DesignerProfile />} />
+            <Route path="/designer/:designerId/services" element={<DesignerServices />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/order" element={<Order />} />
           </Route>

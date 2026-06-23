@@ -15,7 +15,6 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",

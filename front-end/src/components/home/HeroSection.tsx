@@ -20,12 +20,20 @@ interface HeroSectionProps {
   handleClearSearch: () => void;
 }
 
+const formatCategoryLabel = (category: string) => {
+  if (category === "all") return "Tất cả";
+
+  return category
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function HeroSection({
   onSearch,
   onCategoryChange,
   serviceQuery,
   setServiceQuery,
-  serviceCategory: _serviceCategory,
   serviceCategories,
   minPrice,
   setMinPrice,
@@ -97,7 +105,7 @@ export default function HeroSection({
                       />
 
                       {/* Dropdown */}
-                      <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
+                      <div className="absolute left-0 top-full z-[9999] mt-2 w-80 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
                         <div className="mb-4">
                           <div className="mb-3 flex items-center justify-between">
                             <label className="text-sm font-semibold text-neutral-900">Khoảng giá</label>
@@ -195,8 +203,8 @@ export default function HeroSection({
             </div>
 
             {/* Category Filter Buttons */}
-            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden">
-              <div className="flex gap-2 justify-center pb-2">
+            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden -mx-4 px-4">
+              <div className="flex gap-2 pb-2 w-max mx-auto">
                 {serviceCategories.map((category) => (
                   <button
                     key={category}
@@ -206,14 +214,7 @@ export default function HeroSection({
                       : 'bg-white/80 backdrop-blur-sm text-neutral-700 hover:bg-white border border-neutral-200'
                       }`}
                   >
-                    {category === 'Tất cả' ? 'Tất cả' :
-                      category === 'poster' ? 'Poster' :
-                        category === 'banner' ? 'Banner' :
-                          category === 'social-media' ? 'Social Media' :
-                            category === 'business' ? 'Business' :
-                              category === 'event' ? 'Event' :
-                                category === 'combo' ? 'Combo' :
-                                  category === 'other' ? 'Khác' : category}
+                    {formatCategoryLabel(category)}
                   </button>
                 ))}
               </div>

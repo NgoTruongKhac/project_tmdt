@@ -3,7 +3,7 @@ import { ChevronDown, Clock3, Loader2, ShoppingBag } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/api/apiClient";
 
-type OrderStatus = "pending" | "paid" | "completed" | "cancelled";
+type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
 type OrderServiceItem = {
     quantity?: number;
@@ -29,18 +29,18 @@ type OrderItem = {
     services?: OrderServiceItem[];
 };
 
-const ORDER_STATUS_OPTIONS: OrderStatus[] = ["pending", "paid", "completed", "cancelled"];
+const ORDER_STATUS_OPTIONS: OrderStatus[] = ["pending", "processing", "completed", "cancelled"];
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
     pending: "Chờ xử lý",
-    paid: "Đã thanh toán",
+    processing: "Đang xử lý",
     completed: "Hoàn thành",
     cancelled: "Đã hủy",
 };
 
 const STATUS_BADGE_CLASSES: Record<OrderStatus, string> = {
     pending: "bg-yellow-100 text-yellow-800 ring-yellow-200",
-    paid: "bg-blue-100 text-blue-700 ring-blue-200",
+    processing: "bg-blue-100 text-blue-700 ring-blue-200",
     completed: "bg-green-100 text-green-700 ring-green-200",
     cancelled: "bg-red-100 text-red-700 ring-red-200",
 };
@@ -71,7 +71,7 @@ const formatDateTime = (value?: string) => {
 const getOrderStatus = (status?: string): OrderStatus => {
     const normalized = (status || "pending").toLowerCase();
 
-    if (normalized === "paid") return "paid";
+    if (normalized === "paid" || normalized === "processing") return "processing";
     if (normalized === "completed") return "completed";
     if (normalized === "cancelled") return "cancelled";
 

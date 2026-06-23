@@ -125,14 +125,33 @@ export const updateServiceStatus = asyncHandler(async (req, res) => {
 
 export const getAdminOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find()
-        .populate("user", "fullName email")
-        .populate("services.service", "name price thumbnail")
+        .populate("customer", "fullName email profilePicture")
+        .populate("designer", "fullName email")
+        .populate("servicePackage", "name price thumbnail")
         .sort({ createdAt: -1 });
+
+    const formattedOrders = orders.map((order) => {
+        const plainOrder = order.toObject({ virtuals: true });
+
+        return {
+            ...plainOrder,
+            user: plainOrder.customer,
+            services: plainOrder.servicePackage
+                ? [
+                    {
+                        service: plainOrder.servicePackage,
+                        quantity: 1,
+                    },
+                ]
+                : [],
+            totalPrice: plainOrder.totalAmount,
+        };
+    });
 
     res.status(200).json({
         success: true,
         message: "Lấy danh sách đơn hàng thành công",
-        data: orders,
+        data: formattedOrders,
     });
 });
 
@@ -140,7 +159,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const allowedStatuses = ["pending", "paid", "completed", "cancelled"];
+    const allowedStatuses = ["pending", "processing", "completed", "cancelled"];
 
     if (!allowedStatuses.includes(status)) {
         throw new ErrorHandler("Trạng thái không hợp lệ", 400);

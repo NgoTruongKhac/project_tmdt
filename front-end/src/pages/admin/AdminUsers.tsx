@@ -13,8 +13,6 @@ interface User {
     profilePicture?: string;
 }
 
-const API_URL = "http://localhost:3000/api/v1/admin/users";
-
 const roleStyles: Record<string, string> = {
     admin: "bg-purple-100 text-purple-700",
     designer: "bg-blue-100 text-blue-700",
