@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import {
     getDesignerServices,
@@ -6,15 +7,21 @@ import {
 } from "@/api/designerApi";
 
 interface Props {
+    anchorRect: DOMRect | null;
     designerId: string;
     designerName: string;
     profilePicture?: string;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
 }
 
 export default function DesignerHoverCard({
+                                              anchorRect,
                                               designerId,
                                               designerName,
                                               profilePicture,
+                                              onMouseEnter,
+                                              onMouseLeave,
                                           }: Props) {
     const [services, setServices] = useState<
         DesignerService[]
@@ -35,13 +42,35 @@ export default function DesignerHoverCard({
         void fetchServices();
     }, [designerId]);
 
-    return (
+    if (!anchorRect) return null;
+
+    const cardWidth = 288;
+    const cardEstimatedHeight = 340;
+    const viewportGap = 12;
+    const left = Math.min(
+        Math.max(
+            anchorRect.left + anchorRect.width / 2 - cardWidth / 2,
+            viewportGap
+        ),
+        window.innerWidth - cardWidth - viewportGap
+    );
+    const shouldShowAbove =
+        anchorRect.bottom + cardEstimatedHeight + viewportGap >
+            window.innerHeight &&
+        anchorRect.top > cardEstimatedHeight;
+    const top = shouldShowAbove
+        ? Math.max(viewportGap, anchorRect.top - cardEstimatedHeight - 8)
+        : anchorRect.bottom + 8;
+
+    return createPortal(
         <div
+            style={{ left, top, width: cardWidth }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
             className="
-      absolute left-0 top-full z-50 mt-1
-      w-72 rounded-2xl bg-white
+      fixed z-[9999]
+      rounded-2xl bg-white
       border border-neutral-200 p-3 shadow-2xl
-      before:absolute before:-top-2 before:left-0 before:h-2 before:w-full
     "
         >
             <div className="flex items-center gap-3">
@@ -101,6 +130,7 @@ export default function DesignerHoverCard({
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

@@ -66,6 +66,7 @@ const sampleData = [
     isBestSeller: true,
     isFeatured: true,
     soldCount: 421,
+    views: 8420,
   },
   {
     title: "Modern Fashion Sale Banner",
@@ -81,6 +82,7 @@ const sampleData = [
     isBestSeller: true,
     isFeatured: false,
     soldCount: 278,
+    views: 5760,
   },
   {
     title: "Shopee Flash Sale Master Banner",
@@ -96,6 +98,7 @@ const sampleData = [
     isBestSeller: true,
     isFeatured: true,
     soldCount: 612,
+    views: 12680,
   },
   {
     title: "Restaurant Social Media Poster",
@@ -111,6 +114,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: true,
     soldCount: 189,
+    views: 4380,
     revisions: 3,
   },
   {
@@ -127,6 +131,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: true,
     soldCount: 133,
+    views: 3190,
     revisions: 5,
   },
   {
@@ -138,11 +143,12 @@ const sampleData = [
     discountPrice: 299000,
     category: "tech",
     listingType: "package",
-    images: ["https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200"],
-    thumbnail: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200",
+    images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtNc0tWTyx1sb1b2Mxgt5EdwAkHsta5ssppA&s"],
+    thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtNc0tWTyx1sb1b2Mxgt5EdwAkHsta5ssppA&s",
     isBestSeller: true,
     isFeatured: false,
     soldCount: 201,
+    views: 4925,
     revisions: 2,
   },
   {
@@ -159,6 +165,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: true,
     soldCount: 214,
+    views: 6840,
     revisions: 0,
     deliveryTime: 10,
   },
@@ -176,6 +183,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: false,
     soldCount: 98,
+    views: 2410,
     revisions: 0,
     deliveryTime: 7,
   },
@@ -193,6 +201,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: false,
     soldCount: 73,
+    views: 1975,
     revisions: 0,
     deliveryTime: 5,
   },
@@ -210,6 +219,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: false,
     soldCount: 61,
+    views: 1640,
     revisions: 0,
     deliveryTime: 14,
   },
@@ -222,11 +232,12 @@ const sampleData = [
     discountPrice: 2100000,
     category: "food",
     listingType: "package",
-    images: ["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200"],
-    thumbnail: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200",
+    images: ["https://vietbrands.vn/wp-content/uploads/2018/11/b%E1%BB%99-nh%E1%BA%ADn-di%E1%BB%87n-th%C6%B0%C6%A1ng-hi%E1%BB%87u-nh%C3%A0-h%C3%A0ng-2.png"],
+    thumbnail: "https://vietbrands.vn/wp-content/uploads/2018/11/b%E1%BB%99-nh%E1%BA%ADn-di%E1%BB%87n-th%C6%B0%C6%A1ng-hi%E1%BB%87u-nh%C3%A0-h%C3%A0ng-2.png",
     isBestSeller: true,
     isFeatured: false,
     soldCount: 128,
+    views: 3540,
     revisions: 3,
   },
   {
@@ -243,6 +254,7 @@ const sampleData = [
     isBestSeller: false,
     isFeatured: false,
     soldCount: 57,
+    views: 1325,
     revisions: 2,
   },
   {
@@ -259,6 +271,7 @@ const sampleData = [
     isBestSeller: true,
     isFeatured: false,
     soldCount: 631,
+    views: 13920,
     revisions: 0,
   },
 ];
@@ -274,7 +287,7 @@ const createSampleData = () => {
 
     rating: Number((4 + Math.random()).toFixed(1)),
     totalReviews: Math.floor(Math.random() * 300) + 20,
-    views: Math.floor(Math.random() * 5000) + 500,
+    views: service.views ?? Math.floor(Math.random() * 5000) + 500,
     revisions: Math.floor(Math.random() * 5) + 1,
     deliveryTime: Math.floor(Math.random() * 5) + 1,
 

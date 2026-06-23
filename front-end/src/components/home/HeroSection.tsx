@@ -105,7 +105,7 @@ export default function HeroSection({
                       />
 
                       {/* Dropdown */}
-                      <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
+                      <div className="absolute left-0 top-full z-[9999] mt-2 w-80 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl">
                         <div className="mb-4">
                           <div className="mb-3 flex items-center justify-between">
                             <label className="text-sm font-semibold text-neutral-900">Khoảng giá</label>

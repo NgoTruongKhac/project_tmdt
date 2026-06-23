@@ -22,6 +22,8 @@ const normalizeServicePackage = (service) => {
   return {
     ...plainService,
     deliveryTime: plainService.deliveryTime ?? 3,
+    soldCount: plainService.soldCount ?? 0,
+    views: plainService.views ?? 0,
   };
 };
 

@@ -103,6 +103,7 @@ export const searchServices = async (req, res) => {
             revisions: service.revisions,
             deliveryTime: service.deliveryTime,
             soldCount: service.soldCount,
+            views: service.views || 0,
             createdAt: service.createdAt,
             designerId: service.designer ? {
                 _id: service.designer._id,

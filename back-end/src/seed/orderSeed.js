@@ -52,6 +52,7 @@ const samplePackages = [
     isActive: true,
     status: "approved",
     soldCount: 145,
+    views: 3280,
   },
   {
     name: "Banner Shopee Flash Sale",
@@ -68,6 +69,7 @@ const samplePackages = [
     isActive: true,
     status: "approved",
     soldCount: 212,
+    views: 5140,
   },
   {
     name: "Combo thiết kế Instagram Story",
@@ -84,6 +86,7 @@ const samplePackages = [
     isActive: true,
     status: "approved",
     soldCount: 88,
+    views: 2260,
   },
   {
     name: "Banner Bất Động Sản",
@@ -100,6 +103,7 @@ const samplePackages = [
     isActive: true,
     status: "approved",
     soldCount: 47,
+    views: 1180,
   },
   {
     name: "Poster Mỹ Phẩm Cao Cấp",
@@ -116,6 +120,7 @@ const samplePackages = [
     isActive: true,
     status: "approved",
     soldCount: 63,
+    views: 1740,
   },
 ];
 

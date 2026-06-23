@@ -10,7 +10,7 @@ import FavoriteButton from "@/components/common/FavoriteButton";
 import { useToast } from "@/hooks/useToast";
 import DesignerHoverCard from "@/components/home/DesignerHoverCard";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ServiceCardProps {
     service: ServicePackage;
@@ -29,13 +29,23 @@ export default function ServiceCard({
 
     const [showDesignerCard, setShowDesignerCard] =
         useState(false);
+    const [designerAnchorRect, setDesignerAnchorRect] =
+        useState<DOMRect | null>(null);
+    const designerAnchorRef = useRef<HTMLDivElement | null>(null);
     const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const updateDesignerAnchorRect = () => {
+        setDesignerAnchorRect(
+            designerAnchorRef.current?.getBoundingClientRect() ?? null
+        );
+    };
 
     const openDesignerCard = () => {
         if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
         }
 
+        updateDesignerAnchorRect();
         setShowDesignerCard(true);
     };
 
@@ -44,6 +54,20 @@ export default function ServiceCard({
             setShowDesignerCard(false);
         }, 180);
     };
+
+    useEffect(() => {
+        if (!showDesignerCard) return;
+
+        const handleViewportChange = () => updateDesignerAnchorRect();
+
+        window.addEventListener("scroll", handleViewportChange, true);
+        window.addEventListener("resize", handleViewportChange);
+
+        return () => {
+            window.removeEventListener("scroll", handleViewportChange, true);
+            window.removeEventListener("resize", handleViewportChange);
+        };
+    }, [showDesignerCard]);
 
     const getBadgeContent = () => {
         switch (badgeType) {
@@ -71,6 +95,7 @@ export default function ServiceCard({
     };
 
     const badgeContent = getBadgeContent();
+    const views = service.views ?? 0;
 
     return (
         <div
@@ -160,6 +185,7 @@ export default function ServiceCard({
                     {/* DESIGNER */}
                     {service.designer && (
                         <div
+                            ref={designerAnchorRef}
                             className={`relative w-fit ${
                                 showBadge && badgeContent ? "mt-10" : ""
                             }`}
@@ -201,6 +227,9 @@ export default function ServiceCard({
 
                             {showDesignerCard && (
                                 <DesignerHoverCard
+                                    anchorRect={
+                                        designerAnchorRect
+                                    }
                                     designerId={
                                         service.designer._id
                                     }
@@ -210,6 +239,12 @@ export default function ServiceCard({
                                     profilePicture={
                                         service.designer
                                             .profilePicture
+                                    }
+                                    onMouseEnter={
+                                        openDesignerCard
+                                    }
+                                    onMouseLeave={
+                                        closeDesignerCard
                                     }
                                 />
                             )}
@@ -253,7 +288,7 @@ export default function ServiceCard({
 
                         <div className="flex items-center gap-1">
                             <Eye className="w-4 h-4" />
-                            1.2k
+                            {views}
                         </div>
                     </div>
 

@@ -33,9 +33,19 @@ interface Service {
     fullName: string;
     profilePicture?: string;
   };
+  soldCount?: number;
+  views?: number;
 }
 
 const ALL_CATEGORY = "all";
+
+const normalizePrice = (price: string) => {
+  const value = Number(price);
+
+  if (!price || Number.isNaN(value) || value < 0) return null;
+
+  return value;
+};
 
 const formatCategoryLabel = (category: string) => {
   if (category === ALL_CATEGORY) return "Tất cả";
@@ -79,10 +89,19 @@ export default function Home() {
     setIsServiceLoading(true);
     try {
       const params = new URLSearchParams();
+      const normalizedMinPrice = normalizePrice(minPrice);
+      const normalizedMaxPrice = normalizePrice(maxPrice);
+      const shouldSwapPriceRange =
+        normalizedMinPrice !== null &&
+        normalizedMaxPrice !== null &&
+        normalizedMinPrice > normalizedMaxPrice;
+      const queryMinPrice = shouldSwapPriceRange ? normalizedMaxPrice : normalizedMinPrice;
+      const queryMaxPrice = shouldSwapPriceRange ? normalizedMinPrice : normalizedMaxPrice;
+
       if (keyword) params.append('keyword', keyword);
       if (category && category !== ALL_CATEGORY) params.append('category', category);
-      if (minPrice) params.append('minPrice', minPrice);
-      if (maxPrice) params.append('maxPrice', maxPrice);
+      if (queryMinPrice !== null) params.append('minPrice', String(queryMinPrice));
+      if (queryMaxPrice !== null) params.append('maxPrice', String(queryMaxPrice));
 
       const url = `http://localhost:3000/api/v1/search/services${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await axios.get(url);
@@ -138,6 +157,8 @@ export default function Home() {
   const handleClearSearch = () => {
     setServiceQuery('');
     setServiceCategory('');
+    setMinPrice('');
+    setMaxPrice('');
     setDesigners([]);
     setServices([]);
     setShowSearch(false);
@@ -322,6 +343,11 @@ export default function Home() {
                         </div>
 
                         <p className="mt-2 text-xs uppercase tracking-wide text-gray-500">{service.category}</p>
+
+                        <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
+                          <span>{service.soldCount ?? 0} lượt mua</span>
+                          <span>{service.views ?? 0} lượt xem</span>
+                        </div>
 
                         {serviceDesigner && designerId && (
                           <Link

@@ -14,6 +14,7 @@ export interface ServicePackage {
   isFeatured: boolean;
   isActive: boolean;
   soldCount: number;
+  views: number;
   revisions: number;
   deliveryTime: number;
   createdAt: string;

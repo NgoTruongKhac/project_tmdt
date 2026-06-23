@@ -50,21 +50,26 @@ export default function NewestSection() {
         <SectionTitle eyebrow="Vừa ra mắt" title="Gói Mới Nhất" />
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <ServiceCardSkeleton key={i} />
-            ))}
+          <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+            <ServiceCardSkeleton variant="default" />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <ServiceCardSkeleton key={i} variant="compact" />
+              ))}
+            </div>
           </div>
         ) : services.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
             {hero && (
-              <div className="lg:col-span-2">
+              <div>
                 <ServiceCard service={hero} showBadge badgeType="new" />
               </div>
             )}
-            {rest.map((service) => (
-              <ServiceCard key={service._id} service={service} showBadge badgeType="new" />
-            ))}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {rest.map((service) => (
+                <ServiceCard key={service._id} service={service} variant="compact" showBadge badgeType="new" />
+              ))}
+            </div>
           </div>
         ) : (
           <div className="text-center py-12">
