@@ -1,19 +1,22 @@
 import api from "./apiClient";
+import type { ServicePackage } from "./serviceApi";
 
-export interface DesignerService {
+export interface DesignerSummary {
   _id: string;
-  name: string;
-  description: string;
-  price: number;
-  discountPrice?: number | null;
-  category: string;
-  thumbnail: string;
-  deliveryTime?: number;
+  fullName: string;
+  profilePicture?: string;
+  bio?: string;
+  skills?: string[];
+  rating?: number;
+  role?: string;
 }
+
+export type DesignerService = ServicePackage;
 
 export interface DesignerServicesResponse {
   success: boolean;
-  data: DesignerService[];
+  designer?: DesignerSummary;
+  data: ServicePackage[];
 }
 
 export const updateProfileDesigner = async () => {

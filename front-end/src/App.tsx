@@ -14,6 +14,8 @@ import OrderHistory from "./pages/OrderHistory";
 import ServiceMarketplace from "./pages/ServiceMarketplace";
 import ServiceDetail from "./pages/ServiceDetail";
 import Order from "./pages/Order";
+import DesignerServices from "./pages/DesignerServices";
+import DesignerProfile from "./pages/DesignerProfile";
 
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -54,6 +56,8 @@ function App() {
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/orders" element={<OrderHistory />} />
             <Route path="/services-marketplace" element={<ServiceMarketplace />} />
+            <Route path="/designer/:designerId" element={<DesignerProfile />} />
+            <Route path="/designer/:designerId/services" element={<DesignerServices />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/order" element={<Order />} />
           </Route>

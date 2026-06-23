@@ -21,6 +21,9 @@ const STATUS_TABS = [
     "cancelled",
 ];
 
+const fallbackThumbnail =
+    "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600";
+
 export default function MyOrders() {
     const [orders, setOrders] = useState<OrderItem[]>([]);
     const [selectedOrder, setSelectedOrder] =
@@ -59,8 +62,11 @@ export default function MyOrders() {
 
     const filteredOrders = useMemo(() => {
         return orders.filter((order) => {
+            const packageName =
+                order.package?.name || "Dịch vụ không còn hiển thị";
+
             return (
-                order.package.name
+                packageName
                     .toLowerCase()
                     .includes(search.toLowerCase()) ||
                 order.orderCode
@@ -239,7 +245,7 @@ export default function MyOrders() {
                                 >
                                     <div className="flex gap-5">
                                         <img
-                                            src={order.package.thumbnail}
+                                            src={order.package?.thumbnail || fallbackThumbnail}
                                             className="w-[170px] h-[120px] rounded-3xl object-cover"
                                         />
 
@@ -265,15 +271,17 @@ export default function MyOrders() {
                                             </div>
 
                                             <h3 className="text-2xl font-bold text-slate-800 mt-5">
-                                                {order.package.name}
+                                                {order.package?.name || "Dịch vụ không còn hiển thị"}
                                             </h3>
 
                                             <div className="mt-4 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <img
                                                         src={
-                                                            order.designer
-                                                                .profilePicture
+                                                            order.designer?.profilePicture ||
+                                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                                order.designer?.fullName || "Designer"
+                                                            )}&background=random&color=fff`
                                                         }
                                                         className="w-10 h-10 rounded-full object-cover"
                                                     />
@@ -281,8 +289,7 @@ export default function MyOrders() {
                                                     <div>
                                                         <div className="font-semibold">
                                                             {
-                                                                order.designer
-                                                                    .fullName
+                                                                order.designer?.fullName || "Designer"
                                                             }
                                                         </div>
 
@@ -319,7 +326,7 @@ export default function MyOrders() {
                         </div>
 
                         <img
-                            src={selectedOrder.package.thumbnail}
+                            src={selectedOrder.package?.thumbnail || fallbackThumbnail}
                             className="mt-8 rounded-[32px] w-full h-[240px] object-cover"
                         />
 
@@ -329,7 +336,7 @@ export default function MyOrders() {
                             </div>
 
                             <h3 className="text-3xl font-bold mt-3">
-                                {selectedOrder.package.name}
+                                {selectedOrder.package?.name || "Dịch vụ không còn hiển thị"}
                             </h3>
                         </div>
 
@@ -341,8 +348,7 @@ export default function MyOrders() {
 
                                 <span className="font-semibold">
                   {
-                      selectedOrder.designer
-                          .fullName
+                      selectedOrder.designer?.fullName || "Designer"
                   }
                 </span>
                             </div>
@@ -366,8 +372,7 @@ export default function MyOrders() {
 
                                 <span className="font-semibold">
                   {
-                      selectedOrder.package
-                          .deliveryTime
+                      selectedOrder.package?.deliveryTime || 3
                   }{" "}
                                     days
                 </span>

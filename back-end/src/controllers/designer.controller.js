@@ -1,5 +1,6 @@
 import { Designer } from "../models/designer.model.js";
 import { ServicePackage } from "../models/servicePackage.model.js";
+import { User } from "../models/user.model.js";
 
 export const updateProfileDesigner = async (req, res, next) => {
   try {
@@ -36,14 +37,28 @@ export const getDesignerServices = async (req, res, next) => {
   try {
     const { designerId } = req.params;
 
+    const designer = await User.findById(designerId).select(
+      "_id fullName profilePicture bio skills rating role"
+    );
+
+    if (!designer) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy designer",
+      });
+    }
+
     const services = await ServicePackage.find({
       designer: designerId,
       isActive: true,
       status: "approved",
-    }).sort({ createdAt: -1 });
+    })
+      .populate("designer", "fullName profilePicture bio rating")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
+      designer,
       data: services,
     });
   } catch (error) {

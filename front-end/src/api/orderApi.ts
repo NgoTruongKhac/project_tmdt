@@ -8,6 +8,9 @@ export interface OrderItem {
     currency: string;
     paymentStatus: string;
     paymentMethod: string;
+    notes?: string;
+    cancellationReason?: string;
+    cancelledAt?: string | null;
     createdAt: string;
     updatedAt: string;
 
@@ -19,14 +22,14 @@ export interface OrderItem {
         category: string;
         deliveryTime: number;
         revisions: number;
-    };
+    } | null;
 
     designer: {
         id: string;
         fullName: string;
         profilePicture: string;
         bio?: string;
-    };
+    } | null;
 }
 
 export interface OrderResponse {
@@ -60,7 +63,7 @@ export const getMyOrders = async (
 export const cancelOrder = async (
     orderId: string,
     reason?: string
-) => {
+): Promise<{ success: boolean; message: string; data: { order: OrderItem } }> => {
     const response = await api.patch(
         `/orders/${orderId}/cancel`,
         { reason }

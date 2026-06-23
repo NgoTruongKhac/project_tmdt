@@ -17,6 +17,12 @@ const sampleCustomers = [
     profilePicture:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
   },
+  {
+    email: "camt91990@gmail.com",
+    fullName: "Cam Tu",
+    profilePicture:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80",
+  },
 ];
 
 const sampleDesigners = [
@@ -164,10 +170,12 @@ const ensurePackage = async (packageData, designerId) => {
   );
 };
 
-const createOrders = async (customerId, designerId, packages) => {
+const createOrders = async (customers, designers, packages) => {
   const orderDefinitions = [
     {
       orderCode: "ORD-20260524-001",
+      customerIndex: 0,
+      designerIndex: 0,
       status: "pending",
       paymentStatus: "unpaid",
       paymentMethod: "bank_transfer",
@@ -176,6 +184,8 @@ const createOrders = async (customerId, designerId, packages) => {
     },
     {
       orderCode: "ORD-20260524-002",
+      customerIndex: 0,
+      designerIndex: 0,
       status: "processing",
       paymentStatus: "paid",
       paymentMethod: "momo",
@@ -184,6 +194,8 @@ const createOrders = async (customerId, designerId, packages) => {
     },
     {
       orderCode: "ORD-20260524-003",
+      customerIndex: 0,
+      designerIndex: 0,
       status: "completed",
       paymentStatus: "paid",
       paymentMethod: "credit_card",
@@ -192,6 +204,8 @@ const createOrders = async (customerId, designerId, packages) => {
     },
     {
       orderCode: "ORD-20260524-004",
+      customerIndex: 0,
+      designerIndex: 1,
       status: "cancelled",
       paymentStatus: "refunded",
       paymentMethod: "bank_transfer",
@@ -200,11 +214,93 @@ const createOrders = async (customerId, designerId, packages) => {
       cancellationReason: "Khach hang thay doi nhu cau thiet ke",
       cancelledAt: new Date("2026-05-20T09:30:00.000Z"),
     },
+    {
+      orderCode: "ORD-20260524-005",
+      customerIndex: 1,
+      designerIndex: 1,
+      status: "pending",
+      paymentStatus: "unpaid",
+      paymentMethod: "bank_transfer",
+      packageIndex: 4,
+      notes: "Khach hang moi dat poster my pham va dang cho thanh toan.",
+    },
+    {
+      orderCode: "ORD-20260524-006",
+      customerIndex: 1,
+      designerIndex: 0,
+      status: "processing",
+      paymentStatus: "paid",
+      paymentMethod: "zalopay",
+      packageIndex: 0,
+      notes: "Designer dang len concept mau dau tien.",
+    },
+    {
+      orderCode: "ORD-20260524-007",
+      customerIndex: 1,
+      designerIndex: 1,
+      status: "completed",
+      paymentStatus: "paid",
+      paymentMethod: "momo",
+      packageIndex: 1,
+      notes: "Da ban giao file banner va file source.",
+    },
+    {
+      orderCode: "ORD-20260524-008",
+      customerIndex: 0,
+      designerIndex: 1,
+      status: "completed",
+      paymentStatus: "paid",
+      paymentMethod: "bank_transfer",
+      packageIndex: 4,
+      notes: "Khach hang hai long voi ban thiet ke cuoi cung.",
+    },
+    {
+      orderCode: "ORD-CAMTU-001",
+      customerIndex: 2,
+      designerIndex: 0,
+      status: "pending",
+      paymentStatus: "unpaid",
+      paymentMethod: "bank_transfer",
+      packageIndex: 0,
+      notes: "Don hang mau cho Cam Tu dang cho xac nhan.",
+    },
+    {
+      orderCode: "ORD-CAMTU-002",
+      customerIndex: 2,
+      designerIndex: 1,
+      status: "processing",
+      paymentStatus: "paid",
+      paymentMethod: "momo",
+      packageIndex: 1,
+      notes: "Don hang mau cho Cam Tu dang duoc designer thuc hien.",
+    },
+    {
+      orderCode: "ORD-CAMTU-003",
+      customerIndex: 2,
+      designerIndex: 0,
+      status: "completed",
+      paymentStatus: "paid",
+      paymentMethod: "credit_card",
+      packageIndex: 2,
+      notes: "Don hang mau cho Cam Tu da hoan thanh.",
+    },
+    {
+      orderCode: "ORD-CAMTU-004",
+      customerIndex: 2,
+      designerIndex: 1,
+      status: "cancelled",
+      paymentStatus: "refunded",
+      paymentMethod: "bank_transfer",
+      packageIndex: 3,
+      notes: "Don hang mau cho Cam Tu da huy.",
+      cancellationReason: "Khach hang thay doi lich su dung thiet ke",
+      cancelledAt: new Date("2026-05-22T10:15:00.000Z"),
+    },
   ];
 
   const orders = orderDefinitions.map((item) => ({
-    customer: customerId,
-    designer: designerId,
+    customer: customers[item.customerIndex]._id,
+    designer: designers[item.designerIndex]._id,
     servicePackage: packages[item.packageIndex]._id,
     orderCode: item.orderCode,
     status: item.status,
@@ -217,7 +313,7 @@ const createOrders = async (customerId, designerId, packages) => {
     cancelledAt: item.cancelledAt || null,
   }));
 
-  await Order.deleteMany({});
+  await Order.deleteMany({ orderCode: { $in: orders.map((order) => order.orderCode) } });
   await Order.insertMany(orders);
 };
 
@@ -225,26 +321,38 @@ export const seedOrders = async () => {
   try {
     await connectDB();
 
-    const [customerOne, customerTwo, designerOne] = await Promise.all([
-      ensureUser(sampleCustomers[0], "customer"),
-      ensureUser(sampleCustomers[1], "customer"),
+    const [customerOne, customerTwo, camTuCustomer, designerOne, designerTwo] = await Promise.all([
+      ensureUser(sampleCustomers[0], "CUSTOMER"),
+      ensureUser(sampleCustomers[1], "CUSTOMER"),
+      ensureUser(sampleCustomers[2], "CUSTOMER"),
       ensureUser(sampleDesigners[0], "DESIGNER"),
       ensureUser(sampleDesigners[1], "DESIGNER"),
     ]);
 
     const packages = await Promise.all(
-      samplePackages.map((packageData) => ensurePackage(packageData, designerOne._id))
+      samplePackages.map((packageData, index) =>
+        ensurePackage(packageData, index % 2 === 0 ? designerOne._id : designerTwo._id)
+      )
     );
 
-    await createOrders(customerOne._id, designerOne._id, packages);
+    await createOrders(
+      [customerOne, customerTwo, camTuCustomer],
+      [designerOne, designerTwo],
+      packages
+    );
 
     console.log("=== Seed orders hoan tat ===");
-    console.log(`Customers: ${await User.countDocuments({ role: "customer" })}`);
+    console.log(`Customers: ${await User.countDocuments({ role: "CUSTOMER" })}`);
     console.log(`Designers: ${await User.countDocuments({ role: "DESIGNER" })}`);
     console.log(`Service packages: ${await ServicePackage.countDocuments()}`);
     console.log(`Orders: ${await Order.countDocuments()}`);
     console.log(`Customer thu nhat: ${customerOne.fullName}`);
     console.log(`Customer thu hai: ${customerTwo.fullName}`);
+    console.log(`Customer Cam Tu: ${camTuCustomer.email}`);
+    console.log("Tai khoan test customer:");
+    console.log("- customer.one@example.com / 123456");
+    console.log("- customer.two@example.com / 123456");
+    console.log("- camt91990@gmail.com / 123456");
   } catch (error) {
     console.error("Loi khi seed don hang:", error);
     process.exitCode = 1;
