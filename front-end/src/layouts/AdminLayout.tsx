@@ -5,6 +5,7 @@ import {
     Briefcase,
     LayoutDashboard,
     LogOut,
+    ShoppingCart,
     Users,
 } from "lucide-react";
 
@@ -23,6 +24,11 @@ const menuItems = [
         label: "Gói dịch vụ",
         path: "/admin/services",
         icon: Briefcase,
+    },
+    {
+        label: "Đơn hàng",
+        path: "/admin/orders",
+        icon: ShoppingCart,
     },
 ];
 

@@ -302,6 +302,22 @@ export const seedCombinedServices = async () => {
   try {
     await connectDB();
 
+
+    // Tìm hoặc tạo designer
+    let designer = await User.findOne({ role: "DESIGNER" });
+
+    if (!designer) {
+      designer = await User.create({
+        username: "designer_sample",
+        email: "designer@example.com",
+        password: "hashedpassword",
+        fullName: "Designer Mẫu",
+        role: "DESIGNER",
+        isVerified: true
+      });
+      console.log("Đã tạo designer mẫu");
+    }
+
     // Xóa dữ liệu cũ
     await Designer.deleteMany({});
     await User.deleteMany({ role: "DESIGNER" });
@@ -346,6 +362,9 @@ export const seedCombinedServices = async () => {
 
     skills: user.skills || [],
 }));
+    //await Service.deleteMany({});
+    //await ServicePackage.deleteMany({});
+    //console.log("Đã xóa dữ liệu cũ của cả Service và ServicePackage");
 
 await Designer.insertMany(designerProfiles);
 

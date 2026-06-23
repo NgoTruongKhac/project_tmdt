@@ -19,3 +19,4 @@ router.patch(
 );
 
 export { router as orderRouter };
+export default router;

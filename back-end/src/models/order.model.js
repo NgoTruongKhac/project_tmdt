@@ -66,6 +66,16 @@ const OrderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+OrderSchema.virtual("user").get(function () {
+  return this.customer;
+});
+
+OrderSchema.virtual("totalPrice").get(function () {
+  return this.totalAmount;
+});
+
 OrderSchema.index({ customer: 1, createdAt: -1 });
+OrderSchema.index({ designer: 1, createdAt: -1 });
 
 export const Order = mongoose.model("Order", OrderSchema);
+export default Order;

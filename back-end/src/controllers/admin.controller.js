@@ -1,5 +1,6 @@
 import { User } from "../models/user.model.js";
 import { ServicePackage } from "../models/servicePackage.model.js";
+import Order from "../models/order.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 
@@ -118,6 +119,144 @@ export const updateServiceStatus = asyncHandler(async (req, res) => {
             name: servicePackage.name,
             status: servicePackage.status,
             rejectReason: servicePackage.rejectReason,
+        },
+    });
+});
+
+export const getAdminOrders = asyncHandler(async (req, res) => {
+    const orders = await Order.find()
+        .populate("customer", "fullName email profilePicture")
+        .populate("designer", "fullName email")
+        .populate("servicePackage", "name price thumbnail")
+        .sort({ createdAt: -1 });
+
+    const formattedOrders = orders.map((order) => {
+        const plainOrder = order.toObject({ virtuals: true });
+
+        return {
+            ...plainOrder,
+            user: plainOrder.customer,
+            services: plainOrder.servicePackage
+                ? [
+                    {
+                        service: plainOrder.servicePackage,
+                        quantity: 1,
+                    },
+                ]
+                : [],
+            totalPrice: plainOrder.totalAmount,
+        };
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Lấy danh sách đơn hàng thành công",
+        data: formattedOrders,
+    });
+});
+
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["pending", "processing", "completed", "cancelled"];
+
+    if (!allowedStatuses.includes(status)) {
+        throw new ErrorHandler("Trạng thái không hợp lệ", 400);
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+        throw new ErrorHandler("Không tìm thấy đơn hàng", 404);
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Cập nhật trạng thái đơn hàng thành công",
+        data: {
+            id: order._id,
+            status: order.status,
+        },
+    });
+});
+
+export const getDashboardStats = asyncHandler(async (req, res) => {
+    const [
+        totalUsers,
+        totalServices,
+        pendingServices,
+        salesAggregation,
+        roleAggregation,
+        categoryAggregation,
+        topServices,
+    ] = await Promise.all([
+        User.countDocuments(),
+        ServicePackage.countDocuments(),
+        ServicePackage.countDocuments({ status: "pending" }),
+        ServicePackage.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalSales: { $sum: "$soldCount" },
+                },
+            },
+        ]),
+        User.aggregate([
+            {
+                $group: {
+                    _id: "$role",
+                    value: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$_id",
+                    value: 1,
+                },
+            },
+            {
+                $sort: { name: 1 },
+            },
+        ]),
+        ServicePackage.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    value: { $sum: 1 },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$_id",
+                    value: 1,
+                },
+            },
+            {
+                $sort: { name: 1 },
+            },
+        ]),
+        ServicePackage.find()
+            .sort({ soldCount: -1, createdAt: -1 })
+            .limit(5)
+            .select("name soldCount -_id"),
+    ]);
+
+    res.status(200).json({
+        success: true,
+        data: {
+            totalUsers,
+            totalServices,
+            pendingServices,
+            totalSales: salesAggregation[0]?.totalSales || 0,
+            roleDistribution: roleAggregation,
+            categoryDistribution: categoryAggregation,
+            topServices,
         },
     });
 });

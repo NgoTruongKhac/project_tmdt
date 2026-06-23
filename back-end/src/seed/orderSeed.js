@@ -7,30 +7,34 @@ import { Order } from "../models/order.model.js";
 const sampleCustomers = [
   {
     email: "customer.one@example.com",
-    fullName: "Nguyễn Minh Anh",
-    profilePicture: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80",
+    fullName: "Nguyen Minh Anh",
+    profilePicture:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80",
   },
   {
     email: "customer.two@example.com",
-    fullName: "Trần Quốc Huy",
-    profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
+    fullName: "Tran Quoc Huy",
+    profilePicture:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
   },
 ];
 
 const sampleDesigners = [
   {
     email: "designer.one@example.com",
-    fullName: "Lê Thanh Khoa",
-    bio: "Chuyên thiết kế poster, banner và landing page cho thương hiệu nội địa.",
-    profilePicture: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80",
+    fullName: "Le Thanh Khoa",
+    bio: "Chuyen thiet ke poster, banner va landing page cho thuong hieu noi dia.",
+    profilePicture:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80",
     skills: ["Branding", "Poster", "Social Media"],
     rating: 4.9,
   },
   {
     email: "designer.two@example.com",
-    fullName: "Phạm Bảo Trâm",
-    bio: "Tư vấn chiến dịch thiết kế social media và nội dung thương hiệu.",
-    profilePicture: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=300&q=80",
+    fullName: "Pham Bao Tram",
+    bio: "Tu van chien dich thiet ke social media va noi dung thuong hieu.",
+    profilePicture:
+      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=300&q=80",
     skills: ["Social Media", "Packaging", "Storytelling"],
     rating: 4.8,
   },
@@ -38,9 +42,10 @@ const sampleDesigners = [
 
 const samplePackages = [
   {
-    name: "Poster Khai Trương Cá Nhân",
+    name: "Poster Khai Truong Ca Nhan",
     slug: "poster-khai-truong-ca-nhan",
-    description: "Poster khai trương đơn giản, đẹp và thu hút cho cá nhân hoặc startup.",
+    description:
+      "Poster khai truong don gian, dep va thu hut cho ca nhan hoac startup.",
     price: 249000,
     discountPrice: 199000,
     category: "poster",
@@ -57,7 +62,8 @@ const samplePackages = [
   {
     name: "Banner Shopee Flash Sale",
     slug: "banner-shopee-flash-sale-seed",
-    description: "Banner sale chuyên nghiệp dành cho kênh thương mại điện tử, dễ chỉnh sửa và tối ưu hiển thị.",
+    description:
+      "Banner sale chuyen nghiep danh cho kenh thuong mai dien tu, de chinh sua va toi uu hien thi.",
     price: 189000,
     discountPrice: 149000,
     category: "banner",
@@ -72,9 +78,10 @@ const samplePackages = [
     views: 5140,
   },
   {
-    name: "Combo thiết kế Instagram Story",
+    name: "Combo thiet ke Instagram Story",
     slug: "combo-thiet-ke-instagram-story",
-    description: "Gói combo 5 story ngắn, nổi bật, phù hợp gia tăng tương tác trên Instagram.",
+    description:
+      "Goi combo 5 story ngan, noi bat, phu hop gia tang tuong tac tren Instagram.",
     price: 399000,
     discountPrice: 349000,
     category: "social-media",
@@ -89,9 +96,10 @@ const samplePackages = [
     views: 2260,
   },
   {
-    name: "Banner Bất Động Sản",
+    name: "Banner Bat Dong San",
     slug: "banner-bat-dong-san-seed",
-    description: "Banner landing page cho dự án bất động sản, có focus mạnh vào hình ảnh và thông điệp.",
+    description:
+      "Banner landing page cho du an bat dong san, co focus manh vao hinh anh va thong diep.",
     price: 389000,
     discountPrice: null,
     category: "banner",
@@ -106,9 +114,10 @@ const samplePackages = [
     views: 1180,
   },
   {
-    name: "Poster Mỹ Phẩm Cao Cấp",
+    name: "Poster My Pham Cao Cap",
     slug: "poster-my-pham-cao-cap",
-    description: "Poster quảng cáo mỹ phẩm với phong cách sang trọng, phù hợp chụp ảnh và kênh social.",
+    description:
+      "Poster quang cao my pham voi phong cach sang trong, phu hop chup anh va kenh social.",
     price: 329000,
     discountPrice: 279000,
     category: "poster",
@@ -127,11 +136,12 @@ const samplePackages = [
 const ensureUser = async (userData, role) => {
   const password = await bcrypt.hash("123456", 10);
 
-  const doc = await User.findOneAndUpdate(
+  return User.findOneAndUpdate(
     { email: userData.email },
     {
       $setOnInsert: {
         ...userData,
+        username: userData.email.split("@")[0],
         role,
         password,
         isActive: true,
@@ -139,12 +149,10 @@ const ensureUser = async (userData, role) => {
     },
     { upsert: true, new: true }
   );
-
-  return doc;
 };
 
 const ensurePackage = async (packageData, designerId) => {
-  const doc = await ServicePackage.findOneAndUpdate(
+  return ServicePackage.findOneAndUpdate(
     { slug: packageData.slug },
     {
       $set: {
@@ -154,8 +162,6 @@ const ensurePackage = async (packageData, designerId) => {
     },
     { upsert: true, new: true }
   );
-
-  return doc;
 };
 
 const createOrders = async (customerId, designerId, packages) => {
@@ -166,7 +172,7 @@ const createOrders = async (customerId, designerId, packages) => {
       paymentStatus: "unpaid",
       paymentMethod: "bank_transfer",
       packageIndex: 0,
-      notes: "Khách hàng đang chờ xác nhận thông tin đặt thiết kế.",
+      notes: "Khach hang dang cho xac nhan thong tin dat thiet ke.",
     },
     {
       orderCode: "ORD-20260524-002",
@@ -174,7 +180,7 @@ const createOrders = async (customerId, designerId, packages) => {
       paymentStatus: "paid",
       paymentMethod: "momo",
       packageIndex: 1,
-      notes: "Đơn hàng đang được thiết kế và kiểm duyệt.",
+      notes: "Don hang dang duoc thiet ke va kiem duyet.",
     },
     {
       orderCode: "ORD-20260524-003",
@@ -182,7 +188,7 @@ const createOrders = async (customerId, designerId, packages) => {
       paymentStatus: "paid",
       paymentMethod: "credit_card",
       packageIndex: 2,
-      notes: "Khách hàng đã nhận file thiết kế hoàn chỉnh.",
+      notes: "Khach hang da nhan file thiet ke hoan chinh.",
     },
     {
       orderCode: "ORD-20260524-004",
@@ -190,8 +196,8 @@ const createOrders = async (customerId, designerId, packages) => {
       paymentStatus: "refunded",
       paymentMethod: "bank_transfer",
       packageIndex: 3,
-      notes: "Khách hàng đổi ý và yêu cầu hủy trước khi bắt đầu thiết kế.",
-      cancellationReason: "Khách hàng thay đổi nhu cầu thiết kế",
+      notes: "Khach hang doi y va yeu cau huy truoc khi bat dau thiet ke.",
+      cancellationReason: "Khach hang thay doi nhu cau thiet ke",
       cancelledAt: new Date("2026-05-20T09:30:00.000Z"),
     },
   ];
@@ -219,38 +225,34 @@ export const seedOrders = async () => {
   try {
     await connectDB();
 
-    const [customerOne, customerTwo, designerOne, designerTwo] = await Promise.all([
+    const [customerOne, customerTwo, designerOne] = await Promise.all([
       ensureUser(sampleCustomers[0], "customer"),
       ensureUser(sampleCustomers[1], "customer"),
       ensureUser(sampleDesigners[0], "DESIGNER"),
       ensureUser(sampleDesigners[1], "DESIGNER"),
     ]);
 
-    const designerId = designerOne._id;
-
     const packages = await Promise.all(
-      samplePackages.map((packageData) => ensurePackage(packageData, designerId))
+      samplePackages.map((packageData) => ensurePackage(packageData, designerOne._id))
     );
 
-    await createOrders(customerOne._id, designerId, packages);
+    await createOrders(customerOne._id, designerOne._id, packages);
 
-    console.log("=== Seed orders hoàn tất ===");
+    console.log("=== Seed orders hoan tat ===");
     console.log(`Customers: ${await User.countDocuments({ role: "customer" })}`);
     console.log(`Designers: ${await User.countDocuments({ role: "DESIGNER" })}`);
     console.log(`Service packages: ${await ServicePackage.countDocuments()}`);
     console.log(`Orders: ${await Order.countDocuments()}`);
-
-    console.log(`Designer thứ nhất: ${designerOne.fullName}`);
-    console.log(`Customer thứ nhất: ${customerOne.fullName}`);
-    console.log(`Customer thứ hai: ${customerTwo.fullName}`);
+    console.log(`Customer thu nhat: ${customerOne.fullName}`);
+    console.log(`Customer thu hai: ${customerTwo.fullName}`);
   } catch (error) {
-    console.error("Lỗi khi seed đơn hàng:", error);
+    console.error("Loi khi seed don hang:", error);
     process.exitCode = 1;
   }
 };
 
 seedOrders()
-  .then(() => process.exit(0))
+  .then(() => process.exit(process.exitCode || 0))
   .catch((error) => {
     console.error("Error running order seed:", error);
     process.exit(1);
