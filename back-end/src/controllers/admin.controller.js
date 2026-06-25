@@ -189,7 +189,9 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         totalUsers,
         totalServices,
         pendingServices,
-        salesAggregation,
+        totalSalesAggregation,
+        revenueByMonthAggregation,
+        revenueByCategoryAggregation,
         roleAggregation,
         categoryAggregation,
         topServices,
@@ -197,11 +199,83 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         User.countDocuments(),
         ServicePackage.countDocuments(),
         ServicePackage.countDocuments({ status: "pending" }),
-        ServicePackage.aggregate([
+        Order.aggregate([
+            {
+                $match: {
+                    status: "completed",
+                },
+            },
             {
                 $group: {
                     _id: null,
-                    totalSales: { $sum: "$soldCount" },
+                    totalSales: { $sum: "$totalAmount" },
+                },
+            },
+        ]),
+        Order.aggregate([
+            {
+                $match: {
+                    status: "completed",
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                    },
+                    value: { $sum: "$totalAmount" },
+                },
+            },
+            {
+                $sort: {
+                    "_id.year": 1,
+                    "_id.month": 1,
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: {
+                        $concat: ["Tháng ", { $toString: "$_id.month" }],
+                    },
+                    value: 1,
+                },
+            },
+        ]),
+        Order.aggregate([
+            {
+                $match: {
+                    status: "completed",
+                },
+            },
+            {
+                $lookup: {
+                    from: "servicepackages",
+                    localField: "servicePackage",
+                    foreignField: "_id",
+                    as: "servicePackage",
+                },
+            },
+            {
+                $unwind: "$servicePackage",
+            },
+            {
+                $group: {
+                    _id: "$servicePackage.category",
+                    value: { $sum: "$totalAmount" },
+                },
+            },
+            {
+                $sort: {
+                    value: -1,
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$_id",
+                    value: 1,
                 },
             },
         ]),
@@ -253,7 +327,9 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
             totalUsers,
             totalServices,
             pendingServices,
-            totalSales: salesAggregation[0]?.totalSales || 0,
+            totalSales: totalSalesAggregation[0]?.totalSales || 0,
+            revenueByMonth: revenueByMonthAggregation,
+            revenueByCategory: revenueByCategoryAggregation,
             roleDistribution: roleAggregation,
             categoryDistribution: categoryAggregation,
             topServices,

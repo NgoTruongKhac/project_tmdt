@@ -24,7 +24,10 @@ export default function AdminUsers() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    
     const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+    const [confirmModalData, setConfirmModalData] = useState<{ userId: string; currentStatus: boolean } | null>(null);
+    
     const { showToast } = useToast();
 
     useEffect(() => {
@@ -90,7 +93,10 @@ export default function AdminUsers() {
         )}&background=random`;
     };
 
-    const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    const executeToggleStatus = async () => {
+        if (!confirmModalData) return;
+        const { userId, currentStatus } = confirmModalData;
+        
         setUpdatingUserId(userId);
 
         try {
@@ -113,6 +119,7 @@ export default function AdminUsers() {
             showToast("Cập nhật trạng thái người dùng thất bại.", "error");
         } finally {
             setUpdatingUserId(null);
+            setConfirmModalData(null);
         }
     };
 
@@ -221,7 +228,7 @@ export default function AdminUsers() {
                                             <td className="px-6 py-4">
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleToggleStatus(user._id, user.isActive)}
+                                                    onClick={() => setConfirmModalData({ userId: user._id, currentStatus: user.isActive })}
                                                     disabled={isBusy}
                                                     className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${user.isActive
                                                         ? "bg-red-50 text-red-700 hover:bg-red-100"
@@ -271,6 +278,41 @@ export default function AdminUsers() {
                     </div>
                 )}
             </div>
+
+            {/* Modal Xác nhận Khóa / Mở khóa */}
+            {confirmModalData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            {confirmModalData.currentStatus ? "Xác nhận khóa tài khoản" : "Xác nhận mở khóa tài khoản"}
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            {confirmModalData.currentStatus
+                                ? "Bạn có chắc chắn muốn khóa người dùng này? Người dùng sẽ bị đăng xuất và không thể đăng nhập lại vào hệ thống."
+                                : "Bạn có chắc chắn muốn mở khóa cho người dùng này? Tài khoản sẽ có thể truy cập hệ thống hoạt động bình thường trở lại."}
+                        </p>
+                        <div className="mt-6 flex gap-3 sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setConfirmModalData(null)}
+                                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 sm:flex-none"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeToggleStatus}
+                                disabled={updatingUserId === confirmModalData.userId}
+                                className={`inline-flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none ${
+                                    confirmModalData.currentStatus ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+                                }`}
+                            >
+                                {confirmModalData.currentStatus ? "Xác nhận khóa" : "Xác nhận mở khóa"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
