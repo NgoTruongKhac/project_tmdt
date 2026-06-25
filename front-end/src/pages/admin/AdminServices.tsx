@@ -58,9 +58,16 @@ export default function AdminServices() {
     const [statusFilter, setStatusFilter] = useState<"all" | ServiceStatus>("all");
     const [currentPage, setCurrentPage] = useState(1);
     const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
+    
+    // States cho Modal Từ chối
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [rejectTargetId, setRejectTargetId] = useState<string | null>(null);
     const [rejectReason, setRejectReason] = useState("");
+    
+    // States cho Modal Duyệt
+    const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+    const [approveTargetId, setApproveTargetId] = useState<string | null>(null);
+
     const [detailService, setDetailService] = useState<ServiceItem | null>(null);
     const [detailImageIndex, setDetailImageIndex] = useState(0);
     const { showToast } = useToast();
@@ -121,9 +128,9 @@ export default function AdminServices() {
             const dateA = new Date(a.updatedAt || (a as any).createdAt || 0).getTime();
             const dateB = new Date(b.updatedAt || (b as any).createdAt || 0).getTime();
 
-            if (dateA !== dateB) return dateB - dateA; // newest first
+            if (dateA !== dateB) return dateB - dateA;
 
-            return (b.price || 0) - (a.price || 0); // price desc
+            return (b.price || 0) - (a.price || 0);
         });
     }, [searchTerm, services, statusFilter]);
 
@@ -146,22 +153,29 @@ export default function AdminServices() {
         );
     };
 
-    const handleApprove = async (serviceId: string): Promise<boolean> => {
-        setActiveServiceId(serviceId);
+    const openApproveModal = (serviceId: string) => {
+        setApproveTargetId(serviceId);
+        setIsApproveModalOpen(true);
+    };
+
+    const confirmApprove = async () => {
+        if (!approveTargetId) return;
+        setActiveServiceId(approveTargetId);
         try {
-            await apiClient.patch(`/admin/services/${serviceId}/status`, {
+            await apiClient.patch(`/admin/services/${approveTargetId}/status`, {
                 status: "approved",
             });
 
-            updateServiceStatus(serviceId, "approved");
+            updateServiceStatus(approveTargetId, "approved");
             showToast("Duyệt gói dịch vụ thành công.", "success");
-            return true;
+            setIsApproveModalOpen(false);
+            if (detailService?._id === approveTargetId) setDetailService(null);
         } catch (error) {
             console.error("Error approving service:", error);
             showToast("Không thể duyệt gói dịch vụ.", "error");
-            return false;
         } finally {
             setActiveServiceId(null);
+            setApproveTargetId(null);
         }
     };
 
@@ -171,7 +185,7 @@ export default function AdminServices() {
         setIsRejectModalOpen(true);
     };
 
-    const handleReject = async (): Promise<boolean> => {
+    const handleReject = async () => {
         if (!rejectTargetId) return false;
 
         const reason = rejectReason.trim();
@@ -192,7 +206,6 @@ export default function AdminServices() {
             setRejectReason("");
             setRejectTargetId(null);
             showToast("Đã từ chối gói dịch vụ.", "success");
-            // close detail modal if it's showing the same service
             if (detailService?._id === rejectTargetId) setDetailService(null);
             return true;
         } catch (error) {
@@ -345,7 +358,7 @@ export default function AdminServices() {
 
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleApprove(service._id)}
+                                                                onClick={() => openApproveModal(service._id)}
                                                                 disabled={isBusy}
                                                                 className="inline-flex items-center justify-center rounded-lg bg-green-50 p-2 text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60"
                                                                 title="Duyệt"
@@ -413,8 +426,41 @@ export default function AdminServices() {
                 )}
             </div>
 
+            {/* Modal Duyệt */}
+            {isApproveModalOpen && (
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 px-4">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+                        <h2 className="text-lg font-semibold text-gray-900">Xác nhận duyệt gói dịch vụ</h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            Bạn có chắc chắn muốn duyệt gói dịch vụ này? Sau khi duyệt, gói dịch vụ sẽ được hiển thị công khai trên hệ thống.
+                        </p>
+                        <div className="mt-6 flex gap-3 sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsApproveModalOpen(false);
+                                    setApproveTargetId(null);
+                                }}
+                                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 sm:flex-none"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmApprove}
+                                disabled={activeServiceId === approveTargetId}
+                                className="inline-flex flex-1 items-center justify-center rounded-xl bg-green-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                            >
+                                Xác nhận duyệt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Từ chối */}
             {isRejectModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 px-4">
                     <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
                         <h2 className="text-lg font-semibold text-gray-900">Từ chối gói dịch vụ</h2>
                         <p className="mt-2 text-sm text-gray-600">Vui lòng nhập lý do từ chối trước khi xác nhận.</p>
@@ -457,6 +503,8 @@ export default function AdminServices() {
                     </div>
                 </div>
             )}
+
+            {/* Modal Chi tiết */}
             {detailService && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-4">
                     <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-2xl">
@@ -490,7 +538,7 @@ export default function AdminServices() {
                                                     <button
                                                         key={src + idx}
                                                         onClick={() => setDetailImageIndex(idx)}
-                                                        className={`h-16 w-24 overflow-hidden rounded-md border ${detailImageIndex === idx ? 'ring-2 ring-primary-300' : 'border-gray-200'}`}
+                                                        className={`h-16 w-24 overflow-hidden rounded-md border ${detailImageIndex === idx ? 'ring-2 ring-blue-500' : 'border-gray-200'}`}
                                                     >
                                                         <img src={src} className="h-full w-full object-cover" />
                                                     </button>
@@ -533,30 +581,23 @@ export default function AdminServices() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 flex gap-3">
-                                        <button
-                                            onClick={async () => {
-                                                if (!detailService) return;
-                                                const ok = await handleApprove(detailService._id);
-                                                if (ok) setDetailService(null);
-                                            }}
-                                            className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
-                                        >
-                                            {activeServiceId === detailService._id ? <Loader className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Duyệt
-                                        </button>
+                                    {normalizeStatus(detailService.status) === 'pending' && (
+                                        <div className="mt-4 flex gap-3">
+                                            <button
+                                                onClick={() => openApproveModal(detailService._id)}
+                                                className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                                            >
+                                                <Check className="h-4 w-4" /> Duyệt
+                                            </button>
 
-                                        <button
-                                            onClick={() => {
-                                                if (!detailService) return;
-                                                const id = detailService._id;
-                                                setDetailService(null);
-                                                openRejectModal(id);
-                                            }}
-                                            className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
-                                        >
-                                            <X className="h-4 w-4" /> Từ chối
-                                        </button>
-                                    </div>
+                                            <button
+                                                onClick={() => openRejectModal(detailService._id)}
+                                                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                                            >
+                                                <X className="h-4 w-4" /> Từ chối
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {normalizeStatus(detailService.status) === 'rejected' && (
                                         <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
