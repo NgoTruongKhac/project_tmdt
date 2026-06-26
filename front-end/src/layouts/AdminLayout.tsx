@@ -7,6 +7,7 @@ import {
     LogOut,
     ShoppingCart,
     Users,
+    Ticket,
 } from "lucide-react";
 
 const menuItems = [
@@ -29,6 +30,11 @@ const menuItems = [
         label: "Đơn hàng",
         path: "/admin/orders",
         icon: ShoppingCart,
+    },
+    {
+        label: "Mã giảm giá",
+        path: "/admin/vouchers",
+        icon: Ticket,
     },
 ];
 

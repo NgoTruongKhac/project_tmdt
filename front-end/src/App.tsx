@@ -29,6 +29,7 @@ import { RewardProvider } from "./contexts/RewardContext";
 import { ToastContainer } from "./components/common/Toast";
 import { useToast } from "./hooks/useToast";
 import { useAuthStore } from "./stores/useAuthStore";
+import AdminVouchers from "./pages/admin/AdminVouchers";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -71,6 +72,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="services" element={<AdminServices />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="vouchers" element={<AdminVouchers />} />
           </Route>
         </Routes>
 

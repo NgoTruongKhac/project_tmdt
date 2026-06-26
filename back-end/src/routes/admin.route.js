@@ -9,6 +9,7 @@ import {
     getAdminOrders,
     updateOrderStatus,
 } from "../controllers/admin.controller.js";
+import { createVoucher, getAdminVouchers, updateVoucher, toggleVoucherStatus, deleteVoucher } from "../controllers/voucher.controller.js";
 
 const router = express.Router();
 
@@ -27,5 +28,11 @@ router.patch("/services/:id/status", updateServiceStatus);
 router.get("/orders", getAdminOrders);
 
 router.patch("/orders/:id/status", updateOrderStatus);
+
+router.get("/vouchers", getAdminVouchers);
+router.post("/vouchers", createVoucher);
+router.put("/vouchers/:id", updateVoucher);
+router.patch("/vouchers/:id/status", toggleVoucherStatus);
+router.delete("/vouchers/:id", deleteVoucher);
 
 export default router;
