@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminDesigners from "./pages/admin/AdminDesigners";
 
 import { FavoriteProvider } from "./contexts/FavoriteContext";
 import { RewardProvider } from "./contexts/RewardContext";
@@ -30,6 +31,7 @@ import { ToastContainer } from "./components/common/Toast";
 import { useToast } from "./hooks/useToast";
 import { useAuthStore } from "./stores/useAuthStore";
 import AdminVouchers from "./pages/admin/AdminVouchers";
+import AdminManageDesigners from "./pages/admin/AdminManageDesigners";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -73,6 +75,8 @@ function App() {
             <Route path="services" element={<AdminServices />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="vouchers" element={<AdminVouchers />} />
+            <Route path="designers" element={<AdminDesigners />} />
+            <Route path="manage-designers" element={<AdminManageDesigners />} />
           </Route>
         </Routes>
 

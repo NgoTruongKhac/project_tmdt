@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import { Designer } from "../models/designer.model.js";
 import { ServicePackage } from "../models/servicePackage.model.js";
 import Order from "../models/order.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -180,6 +181,51 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         data: {
             id: order._id,
             status: order.status,
+        },
+    });
+});
+
+export const getAdminDesigners = asyncHandler(async (req, res) => {
+    const designers = await Designer.find()
+        .populate("userId", "fullName email profilePicture isActive bio")
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({
+        success: true,
+        message: "Lấy danh sách designer thành công",
+        data: designers,
+    });
+});
+
+export const updateDesignerStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status, rejectReason } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+        throw new ErrorHandler("Trạng thái không hợp lệ", 400);
+    }
+
+    const designer = await Designer.findById(id);
+
+    if (!designer) {
+        throw new ErrorHandler("Không tìm thấy designer", 404);
+    }
+
+    designer.status = status;
+    designer.rejectReason = status === "rejected" ? (rejectReason || "") : "";
+    await designer.save();
+
+    if (status === "approved") {
+        await User.findByIdAndUpdate(designer.userId, { role: "DESIGNER" });
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Cập nhật trạng thái designer thành công",
+        data: {
+            id: designer._id,
+            status: designer.status,
+            rejectReason: designer.rejectReason,
         },
     });
 });
