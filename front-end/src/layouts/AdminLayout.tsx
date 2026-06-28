@@ -8,6 +8,8 @@ import {
     ShoppingCart,
     Users,
     Ticket,
+    UserCheck,
+    UserCog,
 } from "lucide-react";
 
 const menuItems = [
@@ -35,6 +37,16 @@ const menuItems = [
         label: "Mã giảm giá",
         path: "/admin/vouchers",
         icon: Ticket,
+    },
+    {
+        label: "Duyệt Designer",
+        path: "/admin/designers",
+        icon: UserCheck,
+    },
+    {
+        label: "Quản lý Designer",
+        path: "/admin/manage-designers",
+        icon: UserCog,
     },
 ];
 
