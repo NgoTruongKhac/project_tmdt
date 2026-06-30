@@ -13,6 +13,7 @@ import {
   getDesignerPackages,
   getServiceByIdentifier,
   getProtectedImage,
+  createService,
   createServicePackage,
   updateServicePackage,
   deleteServicePackage,
@@ -34,7 +35,7 @@ router.get("/featured", getFeaturedServices);
 router.get("/hire", getHireServices);
 router.get("/packages", getPackageServices);
 router.get("/products", getProductServices);
-
+router.post("/create-product", upload.array("files", 5), createService);
 // ========================================================
 // 2. CÁC ROUTE QUẢN LÝ CỦA DESIGNER (KHỚP VỚI serviceApi.ts)
 // ========================================================

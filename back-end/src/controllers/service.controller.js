@@ -331,7 +331,9 @@ export const getServiceDetail = async (req, res) => {
       _id: { $ne: id },
       category: service.category,
       status: "approved",
-    }).limit(4).select("title price images category");
+    })
+      .limit(4)
+      .select("title price images category");
 
     res.status(200).json({ type: "service", service, relatedServices });
   } catch (error) {
@@ -351,7 +353,7 @@ export const getProtectedImage = async (req, res) => {
     if (!service) return res.status(404).send("Không tìm thấy ảnh");
 
     // Lấy URL ảnh gốc từ Cloudinary
-    const originalUrl = service.images.find(img => img.includes(fileName));
+    const originalUrl = service.images.find((img) => img.includes(fileName));
     if (!originalUrl || !originalUrl.includes("res.cloudinary.com")) {
       return originalUrl
         ? res.redirect(originalUrl)
@@ -359,7 +361,9 @@ export const getProtectedImage = async (req, res) => {
     }
 
     // Tải ảnh từ Cloudinary về dưới dạng Buffer
-    const response = await axios.get(originalUrl, { responseType: 'arraybuffer' });
+    const response = await axios.get(originalUrl, {
+      responseType: "arraybuffer",
+    });
     const inputBuffer = Buffer.from(response.data);
 
     // --- CẤU HÌNH WATERMARK ---
@@ -370,19 +374,20 @@ export const getProtectedImage = async (req, res) => {
             </svg>`;
 
     const processedImage = await sharp(inputBuffer)
-        .resize(1200)
-        .webp({ quality: 70 })
-        .composite([{
+      .resize(1200)
+      .webp({ quality: 70 })
+      .composite([
+        {
           input: Buffer.from(svgWatermark),
           tile: true,
-          gravity: 'northwest'
-        }])
-        .toBuffer();
+          gravity: "northwest",
+        },
+      ])
+      .toBuffer();
 
     res.set("Content-Type", "image/webp");
     res.set("Cache-Control", "public, max-age=86400");
     res.send(processedImage);
-
   } catch (error) {
     console.error("Lỗi xử lý ảnh:", error);
     res.status(500).send("Lỗi xử lý ảnh");
@@ -671,7 +676,7 @@ export const getServicePackageById = asyncHandler(async (req, res) => {
 // Tạo Service mới & Lưu các ảnh gốc
 export const createService = async (req, res) => {
   try {
-    const { title, price, description, designerId } = req.body;
+    const { title, price, description, designerId, category } = req.body;
     const files = req.files;
     const imagePaths = [];
     // Upload từng file lên Cloudinary
@@ -681,7 +686,7 @@ export const createService = async (req, res) => {
 
       const uploadResponse = await cloudinary.uploader.upload(fileBase64, {
         folder: "creatify_services", // Thư mục trên Cloudinary
-        resource_type: "image"
+        resource_type: "image",
       });
 
       // Lưu secure_url hoặc public_id. Ở đây lưu secure_url để dễ quản lý
@@ -693,13 +698,14 @@ export const createService = async (req, res) => {
       price,
       description,
       designerId,
-      images: imagePaths
+      category,
+      images: imagePaths,
     });
 
-    res.status(201).json({ message: "Tạo sản phẩm thành công", service: newService });
+    res
+      .status(201)
+      .json({ message: "Tạo sản phẩm thành công", service: newService });
   } catch (error) {
     res.status(500).json({ message: "Lỗi tạo sản phẩm", error: error.message });
   }
 };
-
-
