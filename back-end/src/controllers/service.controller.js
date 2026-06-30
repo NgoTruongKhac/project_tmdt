@@ -305,7 +305,7 @@ export const getServiceDetail = async (req, res) => {
     if (!service) return res.status(404).json({ message: "Dịch vụ không tồn tại" });
 
     // Tìm dịch vụ tương tự dựa trên category
-    let relatedServices = await Service.find({
+    const relatedServices = await Service.find({
       _id: { $ne: id },
       category: { $in: service.category}
     }).limit(4).select("title price images");
