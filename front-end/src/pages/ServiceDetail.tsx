@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuthStore } from "../stores/useAuthStore";
 
 interface IDesigner {
     _id: string;
@@ -36,6 +37,8 @@ const ServiceDetail: React.FC = () => {
 
     const API_IMAGE_URL = "http://localhost:3000/api/v1/services/image";
 
+    const auth = useAuthStore() as any;
+
     useEffect(() => {
         const fetchServiceData = async () => {
             try {
@@ -57,7 +60,63 @@ const ServiceDetail: React.FC = () => {
     }, [id]);
 
     // Hàm bổ trợ để lấy tên file từ đường dẫn lưu trong DB
-    const getFileName = (path: string) => path.split('/').pop();
+    const getFileName = (path: string) => {
+        if (!path) return "";
+        return path.split('/').pop() || ""; // Lấy "abcxyz.jpg" từ URL Cloudinary
+    };
+
+    // HÀM XỬ LÝ THANH TOÁN
+    // Hàm lấy cookie theo tên
+    const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return null;
+    };
+
+
+    const handlePayment = async () => {
+        // 1. Kiểm tra đăng nhập qua Store
+        if (!auth.userId && !auth.user) {
+            alert("VUI LÒNG ĐĂNG NHẬP ĐỂ MUA DỊCH VỤ!");
+            navigate("/login");
+            return;
+        }
+
+        try {
+            // 2. Lấy token từ Cookie
+            // Thử các tên phổ biến: 'accessToken' hoặc 'token'
+            const token = getCookie("access_token");
+
+            // LOG ĐỂ KIỂM TRA (Bạn hãy nhấn F12 xem dòng này có ra chuỗi loằng ngoằng không)
+            console.log("Token lấy được từ Cookie:", token);
+
+            if (!token) {
+                alert("Không tìm thấy phiên đăng nhập trong Cookie. Vui lòng đăng nhập lại!");
+                return;
+            }
+
+            // 3. Gọi API
+            const response = await axios.post(
+                "http://localhost:3000/api/v1/payments/create-url",
+                { serviceId: id },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                    withCredentials: true // Quan trọng khi làm việc với Cookie
+                }
+            );
+
+            if (response.data.paymentUrl) {
+                window.location.href = response.data.paymentUrl;
+            }
+        } catch (err: any) {
+            console.error("Lỗi API:", err.response);
+            alert(err.response?.data?.message || "Lỗi khởi tạo thanh toán");
+        }
+    };
+
 
     if (loading) return <div style={styles.centerMsg}>Đang tải dữ liệu...</div>;
     if (error) return <div style={{ ...styles.centerMsg, color: "red" }}>{error}</div>;
@@ -136,7 +195,7 @@ const ServiceDetail: React.FC = () => {
                             <div style={styles.featureItem}>✓ Toàn quyền sử dụng thương mại</div>
                         </div>
 
-                        <button style={styles.orderBtn}>Mua ngay</button>
+                        <button style={styles.orderBtn} onClick={handlePayment}>Mua ngay</button>
                         <button style={styles.contactBtn}>Liên hệ Designer</button>
 
                     </div>
