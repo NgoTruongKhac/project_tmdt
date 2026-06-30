@@ -1,9 +1,37 @@
 import { useState, useEffect } from "react";
-import { getProductServices } from "@/api/serviceApi";
-import type { ServicePackage } from "@/api/serviceApi";
+import { getDesignServices } from "@/api/serviceApi";
+import type { DesignService, ServicePackage } from "@/api/serviceApi";
 import ServiceCard from "./ServiceCard";
 import ServiceCardSkeleton from "./ServiceCardSkeleton";
 import SectionTitle from "./SectionTitle";
+
+const mapDesignServiceToCard = (service: DesignService): ServicePackage => ({
+  _id: service._id,
+  name: service.title,
+  slug: service._id,
+  description: service.description || "",
+  price: service.price,
+  category: service.category,
+  thumbnail: service.images?.[0] || "",
+  listingType: "product",
+  isBestSeller: false,
+  isFeatured: false,
+  isActive: service.status === "approved",
+  soldCount: 0,
+  views: 0,
+  revisions: service.revisions || 0,
+  deliveryTime: 3,
+  createdAt: service.createdAt,
+  updatedAt: service.updatedAt,
+  designer: service.designerId
+    ? {
+        _id: service.designerId._id,
+        fullName: service.designerId.fullName,
+        profilePicture: service.designerId.profilePicture,
+      }
+    : undefined,
+  sourceType: "service",
+});
 
 export default function ProductsSection() {
   const [services, setServices] = useState<ServicePackage[]>([]);
@@ -14,8 +42,8 @@ export default function ProductsSection() {
     const fetchServices = async () => {
       try {
         setLoading(true);
-        const response = await getProductServices();
-        setServices(response.data);
+        const response = await getDesignServices();
+        setServices(response.data.map(mapDesignServiceToCard));
       } catch (err) {
         setError("Không thể tải dữ liệu sản phẩm thiết kế");
         console.error("Error fetching product services:", err);

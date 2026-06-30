@@ -1,5 +1,6 @@
 import type { ServicePackage } from "@/api/serviceApi";
 import { formatCurrency } from "@/utils/format";
+import { Link } from "react-router-dom";
 
 import {
     Eye,
@@ -96,6 +97,10 @@ export default function ServiceCard({
 
     const badgeContent = getBadgeContent();
     const views = service.views ?? 0;
+    const detailUrl =
+        service.sourceType === "service"
+            ? `/service/${service._id}?type=service`
+            : null;
 
     return (
         <div
@@ -121,9 +126,12 @@ export default function ServiceCard({
             )}
 
             {/* IMAGE */}
-            <div
-                className={`
-        overflow-hidden
+            {detailUrl ? (
+                <Link
+                    to={detailUrl}
+                    aria-label={`Xem chi tiết ${service.name}`}
+                    className={`
+        block overflow-hidden
 
         ${
                     variant === "compact"
@@ -133,24 +141,56 @@ export default function ServiceCard({
                             : "aspect-[4/5]"
                 }
       `}
-            >
-                <img
-                    src={service.thumbnail}
-                    alt={service.name}
-                    className="
+                >
+                    <img
+                        src={service.thumbnail}
+                        alt={service.name}
+                        className="
             w-full h-full object-cover
             transition duration-500
             group-hover:scale-105
           "
-                    onError={(e) => {
-                        const target =
-                            e.target as HTMLImageElement;
+                        onError={(e) => {
+                            const target =
+                                e.target as HTMLImageElement;
 
-                        target.src =
-                            "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400";
-                    }}
-                />
-            </div>
+                            target.src =
+                                "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400";
+                        }}
+                    />
+                </Link>
+            ) : (
+                <div
+                    className={`
+        block overflow-hidden
+
+        ${
+                        variant === "compact"
+                            ? "aspect-[4/4]"
+                            : variant === "featured"
+                                ? "aspect-[4/5]"
+                                : "aspect-[4/5]"
+                    }
+      `}
+                >
+                    <img
+                        src={service.thumbnail}
+                        alt={service.name}
+                        className="
+            w-full h-full object-cover
+            transition duration-500
+            group-hover:scale-105
+          "
+                        onError={(e) => {
+                            const target =
+                                e.target as HTMLImageElement;
+
+                            target.src =
+                                "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400";
+                        }}
+                    />
+                </div>
+            )}
 
             {/* FAVORITE */}
             <div className="absolute top-4 right-4 z-30">

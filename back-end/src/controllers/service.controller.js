@@ -186,6 +186,22 @@ export const getProductServices = asyncHandler(async (req, res) => {
   });
 });
 
+export const getDesignServices = asyncHandler(async (req, res) => {
+  const services = await Service.find({
+    status: "approved",
+  })
+    .populate("designerId", "fullName profilePicture rating bio")
+    .sort({ createdAt: -1 })
+    .limit(8)
+    .select("-__v");
+
+  res.status(200).json({
+    success: true,
+    message: "Lay danh sach dich vu thanh cong",
+    data: services,
+  });
+});
+
 export const getDesignerPackages = asyncHandler(async (req, res) => {
   const { designerId } = req.params;
 
@@ -284,6 +300,7 @@ export const getServiceByIdentifier = asyncHandler(async (req, res) => {
   const { identifier } = req.params;
 
   if (mongoose.Types.ObjectId.isValid(identifier)) {
+    req.params.id = identifier;
     return getServiceDetail(req, res);
   }
 
@@ -307,10 +324,11 @@ export const getServiceDetail = async (req, res) => {
     // Tìm dịch vụ tương tự dựa trên category
     const relatedServices = await Service.find({
       _id: { $ne: id },
-      category: { $in: service.category}
-    }).limit(4).select("title price images");
+      category: service.category,
+      status: "approved",
+    }).limit(4).select("title price images category");
 
-    res.status(200).json({ service, relatedServices });
+    res.status(200).json({ type: "service", service, relatedServices });
   } catch (error) {
     res.status(500).json({ message: "Lỗi Server", error: error.message });
   }
@@ -329,6 +347,11 @@ export const getProtectedImage = async (req, res) => {
 
     // Lấy URL ảnh gốc từ Cloudinary
     const originalUrl = service.images.find(img => img.includes(fileName));
+    if (!originalUrl || !originalUrl.includes("res.cloudinary.com")) {
+      return originalUrl
+        ? res.redirect(originalUrl)
+        : res.status(404).send("KhÃ´ng tÃ¬m tháº¥y áº£nh Cloudinary");
+    }
 
     // Tải ảnh từ Cloudinary về dưới dạng Buffer
     const response = await axios.get(originalUrl, { responseType: 'arraybuffer' });

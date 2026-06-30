@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { X } from "lucide-react";
 
@@ -86,11 +87,18 @@ export default function DesignerServicesModal({
                                     key={service._id}
                                     className="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl transition"
                                 >
-                                    <img
-                                        src={service.thumbnail}
-                                        alt={service.name}
-                                        className="w-full h-[240px] object-cover"
-                                    />
+                                    <Link
+                                        to={`/service/${service._id}?type=servicePackage`}
+                                        onClick={onClose}
+                                        aria-label={`Xem chi tiết ${service.name}`}
+                                        className="block overflow-hidden"
+                                    >
+                                        <img
+                                            src={service.thumbnail}
+                                            alt={service.name}
+                                            className="w-full h-[240px] object-cover transition duration-500 hover:scale-105"
+                                        />
+                                    </Link>
 
                                     <div className="p-6">
                                         <div className="flex justify-between gap-3">
@@ -121,9 +129,13 @@ export default function DesignerServicesModal({
                                             </div>
                                         </div>
 
-                                        <button className="mt-7 w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-2xl font-bold hover:opacity-90 transition">
+                                        <Link
+                                            to={`/service/${service._id}?type=servicePackage`}
+                                            onClick={onClose}
+                                            className="mt-7 block w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-2xl font-bold hover:opacity-90 transition text-center"
+                                        >
                                             Xem dịch vụ
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             ))}

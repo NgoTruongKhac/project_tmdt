@@ -102,6 +102,7 @@ export const searchServices = async (req, res) => {
             slug: service.slug,
             revisions: service.revisions,
             deliveryTime: service.deliveryTime,
+            listingType: service.listingType,
             soldCount: service.soldCount,
             views: service.views || 0,
             createdAt: service.createdAt,

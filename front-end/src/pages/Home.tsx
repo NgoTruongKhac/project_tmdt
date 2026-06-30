@@ -34,6 +34,7 @@ interface SearchService {
   originalPrice?: number;
   images?: string[];
   description?: string;
+  listingType?: "hire" | "package" | "product";
   revisions?: number;
   deliveryTime?: number;
   createdAt?: string;
@@ -82,7 +83,7 @@ const mapSearchServiceToPackage = (service: SearchService): ServicePackage => ({
       : undefined,
   category: service.category,
   thumbnail: service.images?.[0] || "",
-  listingType: "package",
+  listingType: service.listingType || "package",
   isBestSeller: false,
   isFeatured: false,
   isActive: true,
