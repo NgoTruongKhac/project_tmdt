@@ -177,30 +177,52 @@ export default function ServiceFormModal({
             </label>
           </div>
 
-          <label className="form-control">
-            <span className="label-text mb-1">Tên dịch vụ *</span>
+          {/* Tên dịch vụ */}
+          <div className="form-control space-y-2">
+            <div>
+              <label className="label p-0">
+                <span className="label-text font-semibold text-base">
+                  Tên dịch vụ <span className="text-error">*</span>
+                </span>
+              </label>
+            </div>
+
             <input
               type="text"
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="input input-bordered"
-              placeholder="VD: Thiết kế logo thương hiệu"
+              className="input input-bordered w-full"
+              placeholder="Ví dụ: Thiết kế logo thương hiệu"
               required
             />
-          </label>
+          </div>
 
-          <label className="form-control">
-            <span className="label-text mb-1">Mô tả</span>
+          {/* Mô tả dịch vụ */}
+          <div className="form-control space-y-2">
+            <div>
+              <label className="label p-0">
+                <span className="label-text font-semibold text-base">
+                  Mô tả dịch vụ
+                </span>
+              </label>
+            </div>
+
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              className="textarea textarea-bordered"
-              rows={4}
-              placeholder="Mô tả chi tiết về dịch vụ của bạn"
+              className="textarea textarea-bordered w-full min-h-[120px] resize-y leading-6"
+              placeholder={`Ví dụ:
+• Thiết kế 3 phương án logo.
+• Chỉnh sửa miễn phí tối đa 5 lần.
+• Bàn giao đầy đủ file AI, PDF, PNG.`}
             />
-          </label>
+
+            <div className="text-right text-xs text-base-content/50">
+              {form.description.length} ký tự
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <label className="form-control">

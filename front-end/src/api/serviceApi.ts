@@ -212,3 +212,12 @@ export const deleteServicePackage = async (
   const response = await api.delete(`/services/${id}`);
   return response.data;
 };
+
+export const createServiceProduct = async (
+  formData: FormData,
+): Promise<{ success: boolean; message: string; service: any }> => {
+  const response = await api.post("/services/create-product", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
