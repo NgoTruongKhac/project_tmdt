@@ -13,6 +13,8 @@ import HireSection from "@/components/home/HireSection";
 import PackagesSection from "@/components/home/PackagesSection";
 import ProductsSection from "@/components/home/ProductsSection";
 import ServiceCard from "@/components/home/ServiceCard";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 interface Designer {
   _id: string;
@@ -100,6 +102,8 @@ const mapSearchServiceToPackage = (service: SearchService): ServicePackage => ({
 });
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthStore();
   const [showSearch, setShowSearch] = useState(false);
   const [services, setServices] = useState<SearchService[]>([]);
   const [designers, setDesigners] = useState<Designer[]>([]);
@@ -115,6 +119,12 @@ export default function Home() {
   ]);
 
   const isLoading = isServiceLoading || isDesignerLoading;
+
+  useEffect(() => {
+    if (isAuthenticated && (user?.role === "admin" || user?.role === "ADMIN")) {
+      navigate("/admin", { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     const fetchCategories = async () => {

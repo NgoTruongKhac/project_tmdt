@@ -32,6 +32,7 @@ import { useToast } from "./hooks/useToast";
 import { useAuthStore } from "./stores/useAuthStore";
 import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminManageDesigners from "./pages/admin/AdminManageDesigners";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -63,6 +64,7 @@ function App() {
             <Route path="/designer/:designerId/services" element={<DesignerServices />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/order" element={<Order />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
           </Route>
 
           <Route path="/login" element={<Login />} />
