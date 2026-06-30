@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { transferRoleDesigner } from "../api/userApi";
+import toast from "react-hot-toast";
 
 interface Props {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export default function ModalUploadDesignerProfile({
   });
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
+  const [certificateFiles, setCertificateFiles] = useState<File[]>([]); // Lưu trữ file thật
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,25 +48,59 @@ export default function ModalUploadDesignerProfile({
   const removeSkill = (skill: string) =>
     setSkills(skills.filter((s) => s !== skill));
 
+  // Xử lý khi chọn file ảnh chứng chỉ
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+
+      // Giới hạn tối đa 5 file ảnh tổng cộng
+      if (certificateFiles.length + selectedFiles.length > 5) {
+        setError("Bạn chỉ được phép tải lên tối đa 5 ảnh chứng chỉ.");
+        return;
+      }
+
+      setError("");
+      setCertificateFiles([...certificateFiles, ...selectedFiles]);
+    }
+  };
+
+  // Xóa ảnh khỏi danh sách chuẩn bị upload
+  const removeFile = (index: number) => {
+    setCertificateFiles(certificateFiles.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     setError("");
     if (!form.age || !form.degree || !form.major || !form.experienceYears) {
       setError("Vui lòng điền đầy đủ các trường bắt buộc.");
       return;
     }
+
     try {
       setLoading(true);
-      await transferRoleDesigner({
-        age: Number(form.age),
-        degree: form.degree,
-        major: form.major,
-        experienceYears: Number(form.experienceYears),
-        portfolioUrl: form.portfolioUrl,
-        skills,
+
+      // Khởi tạo FormData để gửi lên Backend
+      const formData = new FormData();
+      formData.append("age", String(form.age));
+      formData.append("degree", form.degree);
+      formData.append("major", form.major);
+      formData.append("experienceYears", String(form.experienceYears));
+      formData.append("portfolioUrl", form.portfolioUrl);
+
+      // Chuyển mảng skills thành chuỗi JSON để phía Backend dễ dàng phân tách
+      formData.append("skills", JSON.stringify(skills));
+
+      // Append từng file ảnh chứng chỉ vào FormData (cùng key 'certificateImages')
+      certificateFiles.forEach((file) => {
+        formData.append("certificateImages", file);
       });
+
+      // Gọi API với đối tượng formData vừa tạo
+      await transferRoleDesigner(formData);
+
       onSuccess?.();
       onClose();
-      alert("Bạn đã nâng cấp lên Designer thành công! 🎉");
+      toast.success("Bạn đã nâng cấp lên Designer thành công!");
     } catch (err: any) {
       setError(
         err?.response?.data?.message || "Nâng cấp thất bại. Vui lòng thử lại.",
@@ -190,6 +226,46 @@ export default function ModalUploadDesignerProfile({
           />
         </label>
 
+        {/* Thêm phần upload ảnh chứng chỉ */}
+        <div className="form-control mt-3">
+          <div className="label">
+            <span className="label-text font-medium">
+              Bằng cấp, chứng chỉ (Tối đa 5 ảnh)
+            </span>
+          </div>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            className="file-input file-input-bordered file-input-primary w-full"
+            onChange={handleFileChange}
+            disabled={certificateFiles.length >= 5}
+          />
+
+          {/* Hiển thị Preview danh sách tên file ảnh đã chọn để upload */}
+          {certificateFiles.length > 0 && (
+            <div className="flex flex-col gap-1 mt-2 bg-base-200 p-2 rounded-lg text-xs">
+              {certificateFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center bg-base-100 p-1.5 rounded border border-base-300"
+                >
+                  <span className="truncate max-w-[85%]">
+                    {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-xs text-error p-0 h-auto min-h-0"
+                    onClick={() => removeFile(index)}
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Skills */}
         <div className="form-control mt-3">
           <div className="label">
@@ -257,7 +333,7 @@ export default function ModalUploadDesignerProfile({
             {loading ? (
               <span className="loading loading-spinner loading-sm" />
             ) : (
-              "🚀 Nâng cấp ngay"
+              "Nâng cấp ngay"
             )}
           </button>
         </div>

@@ -17,4 +17,9 @@ userRouter.post(
   upload.single("profilePicture"),
   updateProfilePicture,
 );
-userRouter.post("/transfer-role-designer", verifyToken, transferRoleDesigner);
+userRouter.post(
+  "/transfer-role-designer",
+  verifyToken,
+  upload.array("certificateImages", 5),
+  transferRoleDesigner,
+);
