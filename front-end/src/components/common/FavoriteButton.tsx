@@ -59,7 +59,6 @@ export default function FavoriteButton({
         onClick={handleToggleFavorite}
         disabled={isLoading}
         className={`
-          absolute bottom-3 right-3 z-10
           w-8 h-8 rounded-full
           bg-white/90 backdrop-blur-sm
           border border-neutral-200

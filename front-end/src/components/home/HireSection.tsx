@@ -1,40 +1,37 @@
 import { useState, useEffect } from "react";
-import { getFeaturedServices } from "@/api/serviceApi";
+import { getHireServices } from "@/api/serviceApi";
 import type { ServicePackage } from "@/api/serviceApi";
 import ServiceCard from "./ServiceCard";
 import ServiceCardSkeleton from "./ServiceCardSkeleton";
 import SectionTitle from "./SectionTitle";
-import { useToast } from "@/hooks/useToast";
-import { ToastContainer } from "@/components/common/Toast";
 
-export default function FeaturedSection() {
+export default function HireSection() {
   const [services, setServices] = useState<ServicePackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toasts, removeToast } = useToast();
 
   useEffect(() => {
-    const fetchFeaturedServices = async () => {
+    const fetchServices = async () => {
       try {
         setLoading(true);
-        const response = await getFeaturedServices();
+        const response = await getHireServices();
         setServices(response.data);
       } catch (err) {
-        setError("Không thể tải dữ liệu gói nổi bật");
-        console.error("Error fetching featured services:", err);
+        setError("Không thể tải dữ liệu dịch vụ thuê designer");
+        console.error("Error fetching hire services:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFeaturedServices();
+    fetchServices();
   }, []);
 
   if (error) {
     return (
       <section className="px-6 py-10">
         <div className="max-w-7xl mx-auto">
-          <SectionTitle eyebrow="Được đề xuất riêng" title="Gói Nổi Bật" />
+          <SectionTitle eyebrow="Liên hệ & đặt yêu cầu" title="Thuê Designer" />
           <div className="text-center py-12">
             <div className="text-neutral-500 mb-4">⚠️ {error}</div>
             <button onClick={() => window.location.reload()} className="btn bg-primary-500 hover:bg-primary-600 text-white border-none">Thử lại</button>
@@ -52,7 +49,7 @@ export default function FeaturedSection() {
   return (
     <section className="px-6 py-10">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle eyebrow="Được đề xuất riêng" title="Gói Nổi Bật" />
+        <SectionTitle eyebrow="Liên hệ & đặt yêu cầu" title="Thuê Designer" />
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -88,11 +85,9 @@ export default function FeaturedSection() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="text-neutral-500">Chưa có gói nổi bật nào</div>
+            <div className="text-neutral-500">Chưa có dịch vụ thuê designer nào</div>
           </div>
         )}
-
-        <ToastContainer toasts={toasts} onRemove={removeToast} />
       </div>
     </section>
   );

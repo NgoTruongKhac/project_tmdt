@@ -152,45 +152,25 @@ export const seedServices = async () => {
       console.log("Đã tạo designer mẫu");
     }
 
-    // Xóa dữ liệu cũ
-    //await Service.deleteMany({});
-    //console.log("Đã xóa dữ liệu Service cũ");
+    await Service.deleteMany({});
 
-    // Tạo dữ liệu mới với designerId
-    const servicesData = sampleServices.map(service => ({
+    const services = sampleServices.map((service) => ({
       ...service,
+      designerId: designer._id,
       status: "approved",
-      designerId: designer._id
     }));
 
-    await Service.insertMany(servicesData);
-
-    console.log(`Đã tạo ${servicesData.length} services mẫu thành công!`);
-
-    // Hiển thị thống kê
-    const stats = {
-      total: await Service.countDocuments(),
-      byCategory: await Service.aggregate([
-        { $group: { _id: "$category", count: { $sum: 1 } } }
-      ])
-    };
-
-    console.log("Thống kê dữ liệu Service:");
-    console.log(`- Tổng số services: ${stats.total}`);
-    console.log("- Theo category:");
-    stats.byCategory.forEach(cat => {
-      console.log(`  + ${cat._id}: ${cat.count}`);
-    });
-
+    await Service.insertMany(services);
+    console.log(`Da seed ${services.length} service mau`);
   } catch (error) {
-    console.error("Lỗi khi seed dữ liệu Service:", error);
+    console.error("Loi seed service:", error);
+    process.exitCode = 1;
   }
 };
 
-// Chạy seed nếu file được gọi trực tiếp
-seedServices().then(() => {
-  process.exit(0);
-}).catch((error) => {
-  console.error("Error running seed:", error);
-  process.exit(1);
-});
+seedServices()
+  .then(() => process.exit(process.exitCode || 0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

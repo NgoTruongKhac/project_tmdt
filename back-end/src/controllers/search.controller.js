@@ -1,11 +1,11 @@
 import { User } from "../models/user.model.js";
-import { Service } from "../models/service.model.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 
 export const searchDesigners = async (req, res) => {
     try {
         const keyword = (req.query.keyword || "").trim();
 
-        let searchFilter = { role: "designer" };
+        let searchFilter = { role: "DESIGNER" };
 
         if (keyword) {
             const keywords = keyword.split(/\s+/);
@@ -45,48 +45,70 @@ export const searchServices = async (req, res) => {
     try {
         const { keyword, category, minPrice, maxPrice } = req.query;
 
-        const searchFilter = {};
-        searchFilter.status = "approved";
+        const searchFilter = {
+            status: "approved",
+            isActive: true,
+        };
 
         if (keyword) {
-            const keywords = keyword.split(/\s+/);
-            searchFilter.$and = keywords.map(word => ({
-                title: { $regex: word, $options: "i" }
+            const keywords = keyword.trim().split(/\s+/);
+            searchFilter.$and = keywords.map((word) => ({
+                $or: [
+                    { name: { $regex: word, $options: "i" } },
+                    { description: { $regex: word, $options: "i" } },
+                    { category: { $regex: word, $options: "i" } },
+                ],
             }));
         }
 
-        if (category) {
+        if (category && category !== "all") {
             searchFilter.category = category;
         }
 
-        if (minPrice || maxPrice) {
-            searchFilter.price = {};
-            if (minPrice) {
-                searchFilter.price.$gte = Number(minPrice);
-            }
-            if (maxPrice) {
-                searchFilter.price.$lte = Number(maxPrice);
-            }
+        const minPriceValue = Number(minPrice);
+        const maxPriceValue = Number(maxPrice);
+        const priceExpr = { $ifNull: ["$discountPrice", "$price"] };
+        const priceConditions = [];
+
+        if (minPrice && !Number.isNaN(minPriceValue)) {
+            priceConditions.push({ $gte: [priceExpr, minPriceValue] });
         }
 
-        const services = await Service.find(searchFilter)
-            .populate("designerId", "fullName profilePicture")
-            .sort({ price: 1, title: 1 })
+        if (maxPrice && !Number.isNaN(maxPriceValue)) {
+            priceConditions.push({ $lte: [priceExpr, maxPriceValue] });
+        }
+
+        if (priceConditions.length > 0) {
+            searchFilter.$expr =
+                priceConditions.length === 1
+                    ? priceConditions[0]
+                    : { $and: priceConditions };
+        }
+
+        const services = await ServicePackage.find(searchFilter)
+            .populate("designer", "fullName profilePicture")
+            .sort({ price: 1, name: 1 })
             .limit(100);
 
         // Transform data để match với frontend interface
         const transformedServices = services.map(service => ({
             id: service._id,
-            title: service.title,
+            title: service.name,
             category: service.category,
-            price: service.price,
-            images: service.images || [],
+            price: service.discountPrice || service.price,
+            originalPrice: service.price,
+            images: service.thumbnail ? [service.thumbnail] : [],
             description: service.description,
+            slug: service.slug,
+            revisions: service.revisions,
+            deliveryTime: service.deliveryTime,
+            soldCount: service.soldCount,
+            views: service.views || 0,
             createdAt: service.createdAt,
-            designerId: service.designerId ? {
-                _id: service.designerId._id,
-                fullName: service.designerId.fullName,
-                profilePicture: service.designerId.profilePicture
+            designerId: service.designer ? {
+                _id: service.designer._id,
+                fullName: service.designer.fullName,
+                profilePicture: service.designer.profilePicture
             } : null
         }));
 

@@ -1,46 +1,37 @@
 import express from "express";
+import multer from "multer";
 import {
   getAllServices,
+  getServiceCategories,
   getBestSellers,
   getNewestServices,
   getFeaturedServices,
-  getServiceBySlug,
-  getServiceDetail, getProtectedImage, createService
+  getHireServices,
+  getPackageServices,
+  getProductServices,
+  getDesignerPackages,
+  getServiceByIdentifier,
+  getProtectedImage,
+  createService,
 } from "../controllers/service.controller.js";
-import multer from "multer";
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Lấy tất cả gói dịch vụ với phân trang
 router.get("/", getAllServices);
-
-// Lấy gói bán chạy
-router.get("/best-sellers", getBestSellers);
-
-// Lấy gói mới nhất
-router.get("/newest", getNewestServices);
-
-// Lấy gói nổi bật
-router.get("/featured", getFeaturedServices);
-
-// Lấy sản phẩm theo id
-router.get("/:id", getServiceDetail);
-
-// Cấu hình multer
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-// Route lấy chi tiết dịch vụ
-router.get("/:id", getServiceDetail);
-
-// Route upload dịch vụ kèm ảnh
 router.post("/", upload.array("images"), createService);
 
-// Route xử lý ảnh bảo vệ
+router.get("/categories", getServiceCategories);
+router.get("/best-sellers", getBestSellers);
+router.get("/newest", getNewestServices);
+router.get("/featured", getFeaturedServices);
+router.get("/hire", getHireServices);
+router.get("/packages", getPackageServices);
+router.get("/products", getProductServices);
+router.get("/designer/:designerId", getDesignerPackages);
 router.get("/image/:fileName", getProtectedImage);
 
-// Lấy chi tiết gói dịch vụ theo slug
-router.get("/:slug", getServiceBySlug);
+router.get("/:identifier", getServiceByIdentifier);
 
-// export { router as serviceRouter };
+export { router as serviceRouter };
 export default router;

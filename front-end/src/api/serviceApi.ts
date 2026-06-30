@@ -9,10 +9,14 @@ export interface ServicePackage {
   discountPrice?: number;
   category: string;
   thumbnail: string;
+  listingType: "hire" | "package" | "product";
   isBestSeller: boolean;
   isFeatured: boolean;
   isActive: boolean;
   soldCount: number;
+  views: number;
+  revisions: number;
+  deliveryTime: number;
   createdAt: string;
   updatedAt: string;
   designer?: {
@@ -44,9 +48,20 @@ export interface ServiceListResponse {
   };
 }
 
+export interface ServiceCategoriesResponse {
+  success: boolean;
+  message: string;
+  data: string[];
+}
+
 // Lấy tất cả gói dịch vụ với phân trang
 export const getAllServices = async (page = 1, limit = 8): Promise<ServiceListResponse> => {
   const response = await api.get(`/services?page=${page}&limit=${limit}`);
+  return response.data;
+};
+
+export const getServiceCategories = async (): Promise<ServiceCategoriesResponse> => {
+  const response = await api.get("/services/categories");
   return response.data;
 };
 
@@ -65,6 +80,21 @@ export const getNewestServices = async (): Promise<ServiceResponse> => {
 // Lấy gói nổi bật
 export const getFeaturedServices = async (): Promise<ServiceResponse> => {
   const response = await api.get("/services/featured");
+  return response.data;
+};
+
+export const getHireServices = async (): Promise<ServiceResponse> => {
+  const response = await api.get("/services/hire");
+  return response.data;
+};
+
+export const getPackageServices = async (): Promise<ServiceResponse> => {
+  const response = await api.get("/services/packages");
+  return response.data;
+};
+
+export const getProductServices = async (): Promise<ServiceResponse> => {
+  const response = await api.get("/services/products");
   return response.data;
 };
 

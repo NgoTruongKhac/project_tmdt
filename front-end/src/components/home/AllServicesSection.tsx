@@ -140,12 +140,9 @@ export default function AllServicesSection() {
 
   if (error) {
     return (
-      <section id="all-services-section" className="py-16 px-4 sm:px-6 lg:px-8">
+      <section id="all-services-section" className="px-6 py-10">
         <div className="max-w-7xl mx-auto">
-          <SectionTitle 
-            title="Tất Cả Gói Dịch Vụ" 
-            subtitle="Khám phá toàn bộ bộ sưu tập thiết kế của chúng tôi"
-          />
+          <SectionTitle eyebrow="Khám phá toàn bộ" title="Tất Cả Gói Dịch Vụ" />
           <div className="text-center py-12">
             <div className="text-neutral-500 mb-4">⚠️ {error}</div>
             <button 
@@ -161,12 +158,9 @@ export default function AllServicesSection() {
   }
 
   return (
-    <section id="all-services-section" className="py-16 px-4 sm:px-6 lg:px-8">
+    <section id="all-services-section" className="px-6 py-10">
       <div className="max-w-7xl mx-auto">
-        <SectionTitle 
-          title="Tất Cả Gói Dịch Vụ" 
-          subtitle="Khám phá toàn bộ bộ sưu tập thiết kế của chúng tôi"
-        />
+        <SectionTitle eyebrow="Khám phá toàn bộ" title="Tất Cả Gói Dịch Vụ" />
         
         {/* Stats */}
         {!loading && totalItems > 0 && (

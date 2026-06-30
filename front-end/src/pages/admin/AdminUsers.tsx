@@ -13,8 +13,6 @@ interface User {
     profilePicture?: string;
 }
 
-const API_URL = "http://localhost:3000/api/v1/admin/users";
-
 const roleStyles: Record<string, string> = {
     admin: "bg-purple-100 text-purple-700",
     designer: "bg-blue-100 text-blue-700",
@@ -25,7 +23,11 @@ export default function AdminUsers() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    
     const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+    const [confirmModalData, setConfirmModalData] = useState<{ userId: string; currentStatus: boolean } | null>(null);
+    
     const { showToast } = useToast();
 
     useEffect(() => {
@@ -59,6 +61,17 @@ export default function AdminUsers() {
         });
     }, [searchTerm, users]);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    const ITEMS_PER_PAGE = 10;
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE,
+    );
+
     const formatDate = (value?: string) => {
         if (!value) return "-";
 
@@ -80,7 +93,10 @@ export default function AdminUsers() {
         )}&background=random`;
     };
 
-    const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    const executeToggleStatus = async () => {
+        if (!confirmModalData) return;
+        const { userId, currentStatus } = confirmModalData;
+        
         setUpdatingUserId(userId);
 
         try {
@@ -103,6 +119,7 @@ export default function AdminUsers() {
             showToast("Cập nhật trạng thái người dùng thất bại.", "error");
         } finally {
             setUpdatingUserId(null);
+            setConfirmModalData(null);
         }
     };
 
@@ -165,7 +182,7 @@ export default function AdminUsers() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredUsers.map((user) => {
+                                paginatedUsers.map((user) => {
                                     const roleKey = (user.role || "customer").toLowerCase();
                                     const isBusy = updatingUserId === user._id;
 
@@ -211,7 +228,7 @@ export default function AdminUsers() {
                                             <td className="px-6 py-4">
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleToggleStatus(user._id, user.isActive)}
+                                                    onClick={() => setConfirmModalData({ userId: user._id, currentStatus: user.isActive })}
                                                     disabled={isBusy}
                                                     className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${user.isActive
                                                         ? "bg-red-50 text-red-700 hover:bg-red-100"
@@ -233,7 +250,69 @@ export default function AdminUsers() {
                         </tbody>
                     </table>
                 </div>
+
+                {!isLoading && filteredUsers.length > 0 && (
+                    <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-sm text-gray-600">
+                            Trang <span className="font-semibold text-gray-900">{currentPage}</span> / {totalPages}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                disabled={currentPage === 1}
+                                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Trước
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                disabled={currentPage === totalPages}
+                                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Sau
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Modal Xác nhận Khóa / Mở khóa */}
+            {confirmModalData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            {confirmModalData.currentStatus ? "Xác nhận khóa tài khoản" : "Xác nhận mở khóa tài khoản"}
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            {confirmModalData.currentStatus
+                                ? "Bạn có chắc chắn muốn khóa người dùng này? Người dùng sẽ bị đăng xuất và không thể đăng nhập lại vào hệ thống."
+                                : "Bạn có chắc chắn muốn mở khóa cho người dùng này? Tài khoản sẽ có thể truy cập hệ thống hoạt động bình thường trở lại."}
+                        </p>
+                        <div className="mt-6 flex gap-3 sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setConfirmModalData(null)}
+                                className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 sm:flex-none"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeToggleStatus}
+                                disabled={updatingUserId === confirmModalData.userId}
+                                className={`inline-flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none ${
+                                    confirmModalData.currentStatus ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+                                }`}
+                            >
+                                {confirmModalData.currentStatus ? "Xác nhận khóa" : "Xác nhận mở khóa"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
