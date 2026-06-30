@@ -6,9 +6,9 @@ import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 import axios from "axios";
 import sharp from "sharp";
 
-// Thông tin Merchant mới bạn cung cấp
-const VNP_TMNCODE = "5A8YSOL6";
-const VNP_HASHSECRET = "RG5T97BVVE62VOG3XKUJMCPDSOUCZPO8";
+// Thông tin Merchant đã được cập nhật mới
+const VNP_TMNCODE = "RDKF68L4";
+const VNP_HASHSECRET = "LPY25CJWW3YNRHII4VEKD9MCWT8PGHGO";
 const VNP_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 const VNP_RETURNURL = "http://localhost:5173/payment-success";
 
