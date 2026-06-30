@@ -5,7 +5,16 @@ const PaymentSchema = new mongoose.Schema(
         orderId: { type: String, required: true, unique: true }, // Mã đơn hàng gửi sang VNPay (vnp_TxnRef)
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service", required: true },
+        serviceType: {
+            type: String,
+            enum: ["Service", "ServicePackage"],
+            default: "Service",
+        },
+        designerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         amount: { type: Number, required: true },
+        originalAmount: { type: Number, required: true },
+        rewardPointsUsed: { type: Number, default: 0 },
+        discountAmount: { type: Number, default: 0 },
         vnpayTranNo: { type: String }, // Mã giao dịch của VNPay trả về
         status: {
             type: String,

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useAuthStore } from "../stores/useAuthStore";
+import { useReward } from "../contexts/RewardContext";
 
 interface IDesigner {
   _id?: string;
@@ -61,14 +62,17 @@ const getProtectedServiceImage = (image?: string) => {
 const ServiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
+  const isServicePackageDetail = searchParams.get("type") === "servicePackage";
   const navigate = useNavigate();
   const [service, setService] = useState<IServicePackage | null>(null);
   const [relatedServices, setRelatedServices] = useState<IServicePackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeImg, setActiveImg] = useState(0);
+  const [rewardPointsToUse, setRewardPointsToUse] = useState(0);
 
   const auth = useAuthStore() as any;
+  const { points } = useReward();
 
   useEffect(() => {
     const fetchServiceData = async () => {
@@ -99,6 +103,16 @@ const ServiceDetail: React.FC = () => {
 
   const images = useMemo(() => (service ? getServiceImages(service) : []), [service]);
   const designer = service?.designer || service?.designerId;
+  const displayPrice = service ? service.discountPrice || service.price : 0;
+  const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1) / 100)));
+  const rewardDiscount = rewardPointsToUse * 100;
+  const payableAmount = Math.max(displayPrice - rewardDiscount, 0);
+
+  useEffect(() => {
+    if (rewardPointsToUse > maxRewardPointsToUse) {
+      setRewardPointsToUse(maxRewardPointsToUse);
+    }
+  }, [maxRewardPointsToUse, rewardPointsToUse]);
 
   const getCookie = (name: string) => {
     const value = `; ${document.cookie}`;
@@ -124,7 +138,7 @@ const ServiceDetail: React.FC = () => {
 
       const response = await axios.post(
         "http://localhost:3000/api/v1/payments/create-url",
-        { serviceId: id },
+        { serviceId: id, rewardPointsToUse: isServicePackageDetail ? 0 : rewardPointsToUse },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -147,7 +161,6 @@ const ServiceDetail: React.FC = () => {
   if (!service) return <div style={styles.centerMsg}>Không tìm thấy dịch vụ.</div>;
 
   const title = getServiceTitle(service);
-  const displayPrice = service.discountPrice || service.price;
 
   return (
     <div style={styles.container}>
@@ -227,6 +240,39 @@ const ServiceDetail: React.FC = () => {
               ) : null}
             </div>
 
+            {!isServicePackageDetail && (
+            <div style={styles.rewardBox}>
+              <div style={styles.rewardHeader}>
+                <span style={styles.rewardTitle}>Dùng điểm thưởng</span>
+                <span style={styles.rewardBalance}>{points.toLocaleString("vi-VN")} điểm</span>
+              </div>
+              <div style={styles.rewardControl}>
+                <input
+                  type="number"
+                  min={0}
+                  max={maxRewardPointsToUse}
+                  value={rewardPointsToUse}
+                  onChange={(event) => {
+                    const nextValue = Number(event.target.value || 0);
+                    setRewardPointsToUse(Math.max(0, Math.min(maxRewardPointsToUse, nextValue)));
+                  }}
+                  style={styles.rewardInput}
+                />
+                <button
+                  type="button"
+                  onClick={() => setRewardPointsToUse(maxRewardPointsToUse)}
+                  style={styles.rewardMaxBtn}
+                >
+                  Tối đa
+                </button>
+              </div>
+              <div style={styles.rewardSummary}>
+                <span>Giảm {rewardDiscount.toLocaleString("vi-VN")} đ</span>
+                <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
+              </div>
+            </div>
+            )}
+
             <div style={styles.serviceCommitment}>
               <div style={styles.featureItem}>✓ Nhận file sau khi thanh toán</div>
               <div style={styles.featureItem}>✓ Hỗ trợ chỉnh sửa theo gói dịch vụ</div>
@@ -301,6 +347,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   priceSection: { display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "25px", borderBottom: "1px solid #f5f5f5", paddingBottom: "20px" },
   priceValue: { fontSize: "30px", fontWeight: "800", color: "#000" },
   originalPrice: { color: "#999", fontSize: "16px", textDecoration: "line-through" },
+  rewardBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", marginBottom: "20px", backgroundColor: "#fafafa" },
+  rewardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "10px" },
+  rewardTitle: { fontSize: "14px", fontWeight: "700", color: "#111" },
+  rewardBalance: { fontSize: "13px", fontWeight: "600", color: "#b45309" },
+  rewardControl: { display: "grid", gridTemplateColumns: "1fr auto", gap: "8px", marginBottom: "10px" },
+  rewardInput: { minWidth: 0, border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", fontWeight: "600", outline: "none" },
+  rewardMaxBtn: { border: "1px solid #0075f2", borderRadius: "8px", padding: "0 12px", backgroundColor: "#fff", color: "#0075f2", fontSize: "13px", fontWeight: "700", cursor: "pointer" },
+  rewardSummary: { display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "13px", color: "#444" },
   serviceCommitment: { marginBottom: "25px" },
   featureItem: { fontSize: "14px", color: "#555", marginBottom: "12px", display: "flex", alignItems: "center" },
   orderBtn: { width: "100%", padding: "16px", backgroundColor: "#0075f2", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "700", fontSize: "16px", cursor: "pointer", marginBottom: "12px", transition: "0.2s" },

@@ -52,6 +52,7 @@ app.use("/api/v1/favorites", favoriteRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/rewards", rewardRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use('/uploads', express.static('public/uploads'));
 app.use("/api/v1/payments", paymentRouter);
