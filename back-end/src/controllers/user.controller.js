@@ -114,7 +114,7 @@ export const transferRoleDesigner = async (req, res, next) => {
     const { age, degree, major, experienceYears, portfolioUrl, skills } =
       req.body;
 
-    // 1. Validate request
+    // 1. Validate các trường dữ liệu text
     if (
       age === undefined ||
       !degree ||
@@ -126,30 +126,57 @@ export const transferRoleDesigner = async (req, res, next) => {
       throw new ErrorHandler("Missing required fields", 400);
     }
 
-    if (!Array.isArray(skills)) {
+    // Parse 'skills' vì khi gửi bằng Form-Data (để upload ảnh), mảng thường bị biến thành string
+    let parsedSkills = skills;
+    if (typeof skills === "string") {
+      try {
+        parsedSkills = JSON.parse(skills);
+      } catch (e) {
+        parsedSkills = skills.split(",").map((s) => s.trim());
+      }
+    }
+
+    if (!Array.isArray(parsedSkills)) {
       throw new ErrorHandler("skills must be an array", 400);
     }
 
-    // 2. Check user exists
+    // 2. Kiểm tra user tồn tại
     const user = await User.findById(userId);
-
     if (!user) {
       throw new ErrorHandler("User not found", 404);
     }
 
-    // 3. Check already designer
+    // 3. Nếu user đã là DESIGNER rồi thì không cho gửi yêu cầu nữa
     if (user.role === "DESIGNER") {
       throw new ErrorHandler("User is already a designer", 400);
     }
 
-    // 4. Check designer profile already exists
+    // 4. Kiểm tra xem hồ sơ Designer đã tồn tại chưa
     const existingDesigner = await Designer.findOne({ userId });
-
     if (existingDesigner) {
-      throw new ErrorHandler("Designer profile already exists", 400);
+      throw new ErrorHandler(
+        "Designer profile already exists or is pending approval",
+        400,
+      );
     }
 
-    // 5. Create designer profile
+    // 5. Xử lý upload NHIỀU ảnh chứng chỉ lên Cloudinary (req.files)
+    let certificateImages = [];
+    if (req.files && req.files.length > 0) {
+      // Chạy upload song song các file bằng Promise.all để tối ưu tốc độ
+      const uploadPromises = req.files.map((file) => {
+        const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+        return cloudinary.uploader.upload(fileBase64, {
+          folder: "designer_certificates", // Thư mục lưu trên Cloudinary
+        });
+      });
+
+      const uploadResults = await Promise.all(uploadPromises);
+      // Gom toàn bộ link secure_url sau khi upload thành công
+      certificateImages = uploadResults.map((result) => result.secure_url);
+    }
+
+    // 6. Khởi tạo hồ sơ Designer (mặc định status sẽ là "pending" theo schema)
     const designer = await Designer.create({
       userId,
       age,
@@ -157,18 +184,17 @@ export const transferRoleDesigner = async (req, res, next) => {
       major,
       experienceYears,
       portfolioUrl,
-      skills,
+      skills: parsedSkills,
+      certificateImages,
     });
 
-    // 6. Update user role
-    user.role = "DESIGNER";
     await user.save();
 
     return res.status(201).json({
-      message: "Transfer role designer successfully",
+      message: "Transfer role designer request submitted successfully",
       designer,
-      role: user.role,  
-      isActive: user.isActive
+      role: user.role,
+      isActive: user.isActive,
     });
   } catch (error) {
     next(error);

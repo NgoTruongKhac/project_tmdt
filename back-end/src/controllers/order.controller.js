@@ -30,6 +30,15 @@ const formatOrderResponse = (order) => {
       }
     : null;
 
+  const customer = order.customer
+    ? {
+        id: order.customer._id,
+        fullName: order.customer.fullName,
+        profilePicture: order.customer.profilePicture,
+        email: order.customer.email,
+      }
+    : null;
+
   return {
     orderId: order._id,
     orderCode: order.orderCode,
@@ -45,6 +54,7 @@ const formatOrderResponse = (order) => {
     notes: order.notes,
     package: servicePackage,
     designer,
+    customer,
   };
 };
 
@@ -61,6 +71,17 @@ const getPagination = (page, limit, totalItems) => {
   };
 };
 
+const ORDER_POPULATE = [
+  { path: "designer", select: "fullName profilePicture role bio rating" },
+  { path: "customer", select: "fullName profilePicture email" },
+  {
+    path: "servicePackage",
+    select:
+      "name description price discountPrice thumbnail category revisions deliveryTime status isActive",
+  },
+];
+
+// Lấy lịch sử đơn hàng của khách hàng (customer)
 export const getMyOrders = asyncHandler(async (req, res) => {
   const userId = req.userId;
   const page = parseInt(req.query.page) || 1;
@@ -99,6 +120,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   });
 });
 
+// Khách hàng hủy đơn hàng của chính mình
 export const cancelOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
   const userId = req.userId;
@@ -167,6 +189,121 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Hủy đơn hàng thành công",
+    data: {
+      order: formatOrderResponse(order),
+    },
+  });
+});
+
+// Lấy danh sách đơn hàng dành cho Designer quản lý
+export const getDesignerOrders = asyncHandler(async (req, res) => {
+  const userId = req.userId; // ID của Designer (lấy từ auth middleware)
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const status = req.query.status || "all";
+
+  // Lọc theo trường designer thay vì customer
+  const query = { designer: userId };
+
+  if (status !== "all") {
+    query.status = status;
+  }
+
+  const [orders, totalItems] = await Promise.all([
+    Order.find(query)
+      .populate("customer", "fullName profilePicture email") // Lấy thông tin người mua
+      .populate({
+        path: "servicePackage",
+        select:
+          "name description price discountPrice thumbnail category revisions deliveryTime status isActive",
+      })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Order.countDocuments(query),
+  ]);
+
+  const formattedOrders = orders.map((order) => formatOrderResponse(order));
+
+  res.status(200).json({
+    success: true,
+    message: "Lấy danh sách đơn hàng của designer thành công",
+    data: {
+      orders: formattedOrders,
+      pagination: getPagination(page, limit, totalItems),
+    },
+  });
+});
+
+// Quy tắc chuyển trạng thái hợp lệ mà Designer được phép thực hiện
+const DESIGNER_ALLOWED_TRANSITIONS = {
+  pending: ["processing", "cancelled"],
+  processing: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
+
+// Designer cập nhật trạng thái đơn hàng (pending -> processing -> completed, hoặc hủy đơn)
+// Tách riêng khỏi cancelOrder vì cancelOrder chỉ dành cho khách hàng (kiểm tra order.customer).
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const userId = req.userId; // ID của Designer
+  const { status, reason } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res.status(400).json({
+      success: false,
+      message: "ID đơn hàng không hợp lệ",
+    });
+  }
+
+  const VALID_STATUSES = ["pending", "processing", "completed", "cancelled"];
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Trạng thái đơn hàng không hợp lệ",
+    });
+  }
+
+  const order = await Order.findById(orderId).populate(ORDER_POPULATE);
+
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      message: "Không tìm thấy đơn hàng",
+    });
+  }
+
+  if (order.designer.toString() !== userId.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "Bạn không có quyền cập nhật đơn hàng này",
+    });
+  }
+
+  const allowedNextStatuses = DESIGNER_ALLOWED_TRANSITIONS[order.status] || [];
+  if (!allowedNextStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: `Không thể chuyển đơn hàng từ trạng thái "${order.status}" sang "${status}"`,
+    });
+  }
+
+  order.status = status;
+
+  if (status === "cancelled") {
+    order.cancelledAt = new Date();
+    order.cancellationReason = reason?.trim() || "Designer hủy đơn";
+    if (order.paymentStatus === "paid") {
+      order.paymentStatus = "refunded";
+    }
+  }
+
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Cập nhật trạng thái đơn hàng thành công",
     data: {
       order: formatOrderResponse(order),
     },

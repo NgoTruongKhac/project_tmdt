@@ -32,6 +32,10 @@ import { useToast } from "./hooks/useToast";
 import { useAuthStore } from "./stores/useAuthStore";
 import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminManageDesigners from "./pages/admin/AdminManageDesigners";
+import DesignerLayout from "./layouts/DesignerLayout";
+import ManageOrders from "./pages/designer/ManageOrders";
+import Dashboad from "./pages/designer/Dashboad";
+import ManageServices from "./pages/designer/ManageServices";
 import PaymentSuccess from "./pages/PaymentSuccess";
 
 function App() {
@@ -59,12 +63,23 @@ function App() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/orders" element={<OrderHistory />} />
-            <Route path="/services-marketplace" element={<ServiceMarketplace />} />
+            <Route
+              path="/services-marketplace"
+              element={<ServiceMarketplace />}
+            />
             <Route path="/designer/:designerId" element={<DesignerProfile />} />
-            <Route path="/designer/:designerId/services" element={<DesignerServices />} />
+            <Route
+              path="/designer/:designerId/services"
+              element={<DesignerServices />}
+            />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/order" element={<Order />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+          </Route>
+          <Route path="/designer-manage" element={<DesignerLayout />}>
+            <Route path="dashboard" element={<Dashboad />} />
+            <Route path="services" element={<ManageServices />} />
+            <Route path="orders" element={<ManageOrders />} />
           </Route>
 
           <Route path="/login" element={<Login />} />
