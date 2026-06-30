@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getAllServices } from "@/api/serviceApi";
 
 import {
@@ -90,12 +91,17 @@ export default function ServiceMarketplace() {
                             key={service._id}
                             className="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl transition group"
                         >
-                            <div className="overflow-hidden">
+                            <Link
+                                to={`/service/${service._id}?type=servicePackage`}
+                                aria-label={`Xem chi tiết ${service.name}`}
+                                className="block overflow-hidden"
+                            >
                                 <img
                                     src={service.thumbnail}
+                                    alt={service.name}
                                     className="h-[260px] w-full object-cover group-hover:scale-105 transition duration-500"
                                 />
-                            </div>
+                            </Link>
 
                             <div className="p-6">
                                 <div className="flex justify-between items-start gap-4">
@@ -155,9 +161,12 @@ export default function ServiceMarketplace() {
                                     </div>
                                 )}
 
-                                <button className="mt-7 w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-2xl font-bold hover:opacity-90 transition">
+                                <Link
+                                    to={`/service/${service._id}?type=servicePackage`}
+                                    className="mt-7 block w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-2xl font-bold hover:opacity-90 transition text-center"
+                                >
                                     View Service
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     ))}

@@ -165,9 +165,9 @@ export default function AllServicesSection() {
         {/* Stats */}
         {!loading && totalItems > 0 && (
           <div className="text-center mb-8">
-            <p className="text-neutral-600">
-              Hiển thị {((currentPage - 1) * 8) + 1} - {Math.min(currentPage * 8, totalItems)} trong tổng số {totalItems} gói dịch vụ
-            </p>
+            {/*<p className="text-neutral-600">*/}
+            {/*  Hiển thị {((currentPage - 1) * 8) + 1} - {Math.min(currentPage * 8, totalItems)} trong tổng số {totalItems} gói dịch vụ*/}
+            {/*</p>*/}
           </div>
         )}
         

@@ -7,7 +7,6 @@ import { Eye, Heart, ShoppingBag, ArrowLeft } from "lucide-react";
 import FavoriteButton from "@/components/common/FavoriteButton";
 import ServiceCardSkeleton from "@/components/home/ServiceCardSkeleton";
 import { useToast } from "@/hooks/useToast";
-import { useFavorite } from "@/contexts/FavoriteContext";
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
@@ -18,7 +17,6 @@ export default function Favorites() {
   const [totalItems, setTotalItems] = useState(0);
   
   const { showToast } = useToast();
-  const { refreshFavoriteCount } = useFavorite();
 
   const fetchFavorites = async (page: number) => {
     try {
@@ -43,12 +41,7 @@ export default function Favorites() {
   const handleRemoveFavorite = (serviceId: string) => {
     // Remove from local state immediately for better UX
     setFavorites(prev => prev.filter(fav => fav.service._id !== serviceId));
-    setTotalItems(prev => prev - 1);
-    
-    // Refresh favorite count in context
-    refreshFavoriteCount();
-    
-    showToast("Đã xóa khỏi danh sách yêu thích", "success");
+    setTotalItems(prev => Math.max(0, prev - 1));
   };
 
   const handlePageChange = (page: number) => {
@@ -183,9 +176,12 @@ export default function Favorites() {
                     <FavoriteButton 
                       serviceId={favorite.service._id} 
                       variant="card"
+                      className="absolute top-3 right-3"
                       showToast={(message, type) => {
                         showToast(message, type);
-                        if (type === "success" && message.includes("xóa")) {
+                      }}
+                      onToggle={(isFavorite) => {
+                        if (!isFavorite) {
                           handleRemoveFavorite(favorite.service._id);
                         }
                       }}
@@ -235,9 +231,13 @@ export default function Favorites() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        disabled
+                        className="flex-1 bg-neutral-200 text-neutral-500 font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
+                      >
                         <Eye className="w-4 h-4" />
-                        Xem chi tiết
+                        Chi tiết gói sắp có
                       </button>
                     </div>
                   </div>

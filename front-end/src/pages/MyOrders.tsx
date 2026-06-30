@@ -246,6 +246,7 @@ export default function MyOrders() {
                                     <div className="flex gap-5">
                                         <img
                                             src={order.package?.thumbnail || fallbackThumbnail}
+                                            alt={order.package?.name || "Dịch vụ không còn hiển thị"}
                                             className="w-[170px] h-[120px] rounded-3xl object-cover"
                                         />
 
@@ -327,6 +328,7 @@ export default function MyOrders() {
 
                         <img
                             src={selectedOrder.package?.thumbnail || fallbackThumbnail}
+                            alt={selectedOrder.package?.name || "Dịch vụ không còn hiển thị"}
                             className="mt-8 rounded-[32px] w-full h-[240px] object-cover"
                         />
 

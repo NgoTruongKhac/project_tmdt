@@ -9,6 +9,7 @@ import {
   getHireServices,
   getPackageServices,
   getProductServices,
+  getDesignServices,
   getDesignerPackages,
   getServiceByIdentifier,
   getProtectedImage,
@@ -28,6 +29,7 @@ router.get("/featured", getFeaturedServices);
 router.get("/hire", getHireServices);
 router.get("/packages", getPackageServices);
 router.get("/products", getProductServices);
+router.get("/design-services", getDesignServices);
 router.get("/designer/:designerId", getDesignerPackages);
 router.get("/image/:fileName", getProtectedImage);
 

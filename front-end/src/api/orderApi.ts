@@ -20,6 +20,7 @@ export interface OrderItem {
         description: string;
         thumbnail: string;
         category: string;
+        listingType?: "hire" | "package" | "product";
         deliveryTime: number;
         revisions: number;
     } | null;
