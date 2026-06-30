@@ -24,12 +24,37 @@ export interface ServicePackage {
     fullName: string;
     profilePicture?: string;
   };
+  sourceType?: "service" | "servicePackage";
+}
+
+export interface DesignService {
+  _id: string;
+  title: string;
+  description?: string;
+  price: number;
+  category: string;
+  images: string[];
+  status: "pending" | "approved" | "rejected";
+  revisions: number;
+  createdAt: string;
+  updatedAt: string;
+  designerId?: {
+    _id: string;
+    fullName: string;
+    profilePicture?: string;
+  };
 }
 
 export interface ServiceResponse {
   success: boolean;
   message: string;
   data: ServicePackage[];
+}
+
+export interface DesignServiceResponse {
+  success: boolean;
+  message: string;
+  data: DesignService[];
 }
 
 export interface ServiceListResponse {
@@ -99,6 +124,11 @@ export const getPackageServices = async (): Promise<ServiceResponse> => {
 
 export const getProductServices = async (): Promise<ServiceResponse> => {
   const response = await api.get("/services/products");
+  return response.data;
+};
+
+export const getDesignServices = async (): Promise<DesignServiceResponse> => {
+  const response = await api.get("/services/design-services");
   return response.data;
 };
 

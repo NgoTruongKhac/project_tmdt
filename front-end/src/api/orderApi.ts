@@ -14,15 +14,16 @@ export interface OrderItem {
   createdAt: string;
   updatedAt: string;
 
-  package: {
-    id: string;
-    name: string;
-    description: string;
-    thumbnail: string;
-    category: string;
-    deliveryTime: number;
-    revisions: number;
-  } | null;
+    package: {
+        id: string;
+        name: string;
+        description: string;
+        thumbnail: string;
+        category: string;
+        listingType?: "hire" | "package" | "product";
+        deliveryTime: number;
+        revisions: number;
+    } | null;
 
   designer: {
     id: string;

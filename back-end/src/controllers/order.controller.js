@@ -12,6 +12,7 @@ const formatOrderResponse = (order) => {
         discountPrice: order.servicePackage.discountPrice,
         thumbnail: order.servicePackage.thumbnail,
         category: order.servicePackage.category,
+        listingType: order.servicePackage.listingType,
         revisions: order.servicePackage.revisions,
         deliveryTime: order.servicePackage.deliveryTime ?? 3,
         status: order.servicePackage.status,

@@ -9,6 +9,7 @@ import {
   getHireServices,
   getPackageServices,
   getProductServices,
+  getDesignServices,
   getDesignerPackages,
   getServiceByIdentifier,
   getProtectedImage,
@@ -38,6 +39,7 @@ router.get("/products", getProductServices);
 // 2. CÁC ROUTE QUẢN LÝ CỦA DESIGNER (KHỚP VỚI serviceApi.ts)
 // ========================================================
 // API lấy danh sách dịch vụ phía ngoài portfolio công khai
+router.get("/design-services", getDesignServices);
 router.get("/designer/:designerId", getDesignerPackages);
 
 // API lấy danh sách dịch vụ trong trang QUẢN LÝ (ManageServices.tsx) của designer

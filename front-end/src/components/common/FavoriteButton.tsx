@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, HeartOff } from "lucide-react";
 import { useFavorite } from "@/contexts/FavoriteContext";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
@@ -9,13 +9,15 @@ interface FavoriteButtonProps {
   variant?: "card" | "page";
   className?: string;
   showToast?: (message: string, type: "success" | "error" | "info") => void;
+  onToggle?: (isFavorite: boolean) => void;
 }
 
 export default function FavoriteButton({ 
   serviceId, 
   variant = "card", 
   className = "",
-  showToast 
+  showToast,
+  onToggle
 }: FavoriteButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toggleFavorite, checkIsFavorite } = useFavorite();
@@ -42,6 +44,10 @@ export default function FavoriteButton({
       
       if (showToast) {
         showToast(result.message, result.success ? "success" : "error");
+      }
+
+      if (result.success) {
+        onToggle?.(result.isFavorite);
       }
     } catch (error) {
       console.error("Error toggling favorite:", error);
@@ -97,8 +103,8 @@ export default function FavoriteButton({
       `}
       title="Xóa khỏi yêu thích"
     >
-      <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-      <span className="text-sm font-medium">Yêu thích</span>
+      <HeartOff className="w-4 h-4" />
+      <span className="text-sm font-medium">Bỏ thích</span>
     </button>
   );
 }

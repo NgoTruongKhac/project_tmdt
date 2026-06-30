@@ -7,6 +7,7 @@ import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 import slugify from "slugify";
+import axios from "axios";
 import cloudinary from "../configs/cloudinary.config.js";
 
 const getPagination = (page, limit, totalItems) => {
@@ -188,6 +189,22 @@ export const getProductServices = asyncHandler(async (req, res) => {
   });
 });
 
+export const getDesignServices = asyncHandler(async (req, res) => {
+  const services = await Service.find({
+    status: "approved",
+  })
+    .populate("designerId", "fullName profilePicture rating bio")
+    .sort({ createdAt: -1 })
+    .limit(8)
+    .select("-__v");
+
+  res.status(200).json({
+    success: true,
+    message: "Lay danh sach dich vu thanh cong",
+    data: services,
+  });
+});
+
 export const getDesignerPackages = asyncHandler(async (req, res) => {
   const { designerId } = req.params;
 
@@ -286,6 +303,7 @@ export const getServiceByIdentifier = asyncHandler(async (req, res) => {
   const { identifier } = req.params;
 
   if (mongoose.Types.ObjectId.isValid(identifier)) {
+    req.params.id = identifier;
     return getServiceDetail(req, res);
   }
 
@@ -311,47 +329,62 @@ export const getServiceDetail = async (req, res) => {
     // Tìm dịch vụ tương tự dựa trên category
     const relatedServices = await Service.find({
       _id: { $ne: id },
-      category: { $in: service.category },
-    })
-      .limit(4)
-      .select("title price images");
+      category: service.category,
+      status: "approved",
+    }).limit(4).select("title price images category");
 
-    res.status(200).json({ service, relatedServices });
+    res.status(200).json({ type: "service", service, relatedServices });
   } catch (error) {
     res.status(500).json({ message: "Lỗi Server", error: error.message });
   }
 };
 
-// Xử lý đóng dấu Watermark mật độ cao
+// Lấy ảnh và đóng dấu watermark
 export const getProtectedImage = async (req, res) => {
   try {
     const { fileName } = req.params;
-    const filePath = path.join(process.cwd(), "public", "uploads", fileName);
-    if (!fs.existsSync(filePath))
-      return res.status(404).json({ message: "Không tìm thấy ảnh" });
 
-    // Cấu hình chữ "creatify" mờ lặp lại trên ảnh
+    // Vì trong DB lưu URL đầy đủ, nên tìm lại URL đó dựa vào fileName
+    // fileName chính là phần cuối của URL
+    // Giả sử URL: https://res.cloudinary.com/.../creatify_products/abcxyz.jpg
+    const service = await Service.findOne({ images: { $regex: fileName } });
+    if (!service) return res.status(404).send("Không tìm thấy ảnh");
+
+    // Lấy URL ảnh gốc từ Cloudinary
+    const originalUrl = service.images.find(img => img.includes(fileName));
+    if (!originalUrl || !originalUrl.includes("res.cloudinary.com")) {
+      return originalUrl
+        ? res.redirect(originalUrl)
+        : res.status(404).send("KhÃ´ng tÃ¬m tháº¥y áº£nh Cloudinary");
+    }
+
+    // Tải ảnh từ Cloudinary về dưới dạng Buffer
+    const response = await axios.get(originalUrl, { responseType: 'arraybuffer' });
+    const inputBuffer = Buffer.from(response.data);
+
+    // --- CẤU HÌNH WATERMARK ---
     const svgWatermark = `
             <svg width="150" height="100">
                 <style>.mark { fill: white; fill-opacity: 0.25; font-weight: bold; font-size: 24px; }</style>
                 <text x="50%" y="50%" class="mark" text-anchor="middle" transform="rotate(-30, 75, 50)">creatify</text>
             </svg>`;
 
-    const processedImage = await sharp(filePath)
-      .resize(1200)
-      .webp({ quality: 70 })
-      .composite([
-        {
+    const processedImage = await sharp(inputBuffer)
+        .resize(1200)
+        .webp({ quality: 70 })
+        .composite([{
           input: Buffer.from(svgWatermark),
-          tile: true, // Kích hoạt chế độ lặp lại mật độ cao [cite: 248]
-          gravity: "northwest",
-        },
-      ])
-      .toBuffer();
+          tile: true,
+          gravity: 'northwest'
+        }])
+        .toBuffer();
 
     res.set("Content-Type", "image/webp");
+    res.set("Cache-Control", "public, max-age=86400");
     res.send(processedImage);
+
   } catch (error) {
+    console.error("Lỗi xử lý ảnh:", error);
     res.status(500).send("Lỗi xử lý ảnh");
   }
 };
@@ -634,3 +667,39 @@ export const getServicePackageById = asyncHandler(async (req, res) => {
     data: normalizeServicePackage(service),
   });
 });
+
+// Tạo Service mới & Lưu các ảnh gốc
+export const createService = async (req, res) => {
+  try {
+    const { title, price, description, designerId } = req.body;
+    const files = req.files;
+    const imagePaths = [];
+    // Upload từng file lên Cloudinary
+    for (const file of files) {
+      // Chuyển buffer thành base64 để upload
+      const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+
+      const uploadResponse = await cloudinary.uploader.upload(fileBase64, {
+        folder: "creatify_services", // Thư mục trên Cloudinary
+        resource_type: "image"
+      });
+
+      // Lưu secure_url hoặc public_id. Ở đây lưu secure_url để dễ quản lý
+      imagePaths.push(uploadResponse.secure_url);
+    }
+
+    const newService = await Service.create({
+      title,
+      price,
+      description,
+      designerId,
+      images: imagePaths
+    });
+
+    res.status(201).json({ message: "Tạo sản phẩm thành công", service: newService });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi tạo sản phẩm", error: error.message });
+  }
+};
+
+

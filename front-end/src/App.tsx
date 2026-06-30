@@ -36,6 +36,7 @@ import DesignerLayout from "./layouts/DesignerLayout";
 import ManageOrders from "./pages/designer/ManageOrders";
 import Dashboad from "./pages/designer/Dashboad";
 import ManageServices from "./pages/designer/ManageServices";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -73,6 +74,7 @@ function App() {
             />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/order" element={<Order />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
           </Route>
           <Route path="/designer-manage" element={<DesignerLayout />}>
             <Route path="dashboard" element={<Dashboad />} />
