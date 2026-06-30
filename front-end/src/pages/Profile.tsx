@@ -422,7 +422,7 @@ export default function Profile() {
                 className="btn btn-primary flex-1"
                 onClick={() => setShowDesignerModal(true)}
               >
-                🚀 Nâng cấp lên Designer
+                Nâng cấp lên Designer
               </button>
             )}
           </div>
