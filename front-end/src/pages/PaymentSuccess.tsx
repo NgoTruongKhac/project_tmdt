@@ -6,7 +6,7 @@ import { useReward } from "../contexts/RewardContext";
 const PaymentSuccess: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { fetchRewards, fetchHistory } = useReward();
+    const { fetchRewards, fetchHistory, resetSessionRedeemedPoints } = useReward();
     const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
     const [orderId, setOrderId] = useState<string | null>(null);
 
@@ -21,6 +21,7 @@ const PaymentSuccess: React.FC = () => {
                 if (response.data.success) {
                     await fetchRewards();
                     await fetchHistory();
+                    resetSessionRedeemedPoints();
                     setStatus("success");
                 } else {
                     setStatus("failed");

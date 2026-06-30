@@ -37,14 +37,14 @@ export const earnPointsForOrder = async (userId, orderId, totalPrice) => {
     { new: true }
   );
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("Không tìm thấy người dùng");
 
   await RewardPointHistory.create({
     user: userId,
     order: orderId,
     points: earnedPoints,
     type: "earn",
-    description: `Nhan ${earnedPoints} diem tu don hang ${orderId}`,
+    description: `Nhận ${earnedPoints} điểm từ đơn hàng ${orderId}`,
   });
 
   await updateMembershipRank(user);
@@ -72,7 +72,7 @@ export const redeemPointsForOrder = async (userId, orderId, points, orderTotal) 
 
   const discountAmount = pointsToUse * 100;
   if (orderTotal && discountAmount >= orderTotal) {
-    throw new ErrorHandler("So tien giam phai nho hon tong gia tri don hang", 400);
+    throw new ErrorHandler("Số tiền giảm phải nhỏ hơn tổng giá trị đơn hàng", 400);
   }
 
   const user = await User.findOneAndUpdate(
@@ -82,7 +82,7 @@ export const redeemPointsForOrder = async (userId, orderId, points, orderTotal) 
   );
 
   if (!user) {
-    throw new ErrorHandler("Khong du diem de thuc hien giao dich", 400);
+    throw new ErrorHandler("Không đủ điểm để thực hiện giao dịch", 400);
   }
 
   await RewardPointHistory.create({
@@ -90,7 +90,7 @@ export const redeemPointsForOrder = async (userId, orderId, points, orderTotal) 
     order: orderId,
     points: pointsToUse,
     type: "redeem",
-    description: `Da dung ${pointsToUse} diem de giam gia don hang ${orderId}`,
+    description: `Đã dùng ${pointsToUse} điểm để giảm giá đơn hàng ${orderId}`,
   });
 
   return {
@@ -105,14 +105,14 @@ export const simulatePayment = asyncHandler(async (req, res, next) => {
   const userId = req.userId;
 
   if (!orderId || !totalPrice) {
-    return next(new ErrorHandler("Thieu orderId hoac totalPrice", 400));
+    return next(new ErrorHandler("Thiếu orderId hoặc totalPrice", 400));
   }
 
   await earnPointsForOrder(userId, orderId, totalPrice);
 
   res.status(200).json({
     success: true,
-    message: "Da cong diem thanh cong sau thanh toan",
+    message: "Đã cộng điểm thành công sau thanh toán",
     data: { orderId, totalPrice },
   });
 });
@@ -120,12 +120,12 @@ export const simulatePayment = asyncHandler(async (req, res, next) => {
 export const getCurrentPoints = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.userId);
   if (!user) {
-    return next(new ErrorHandler("User not found", 404));
+    return next(new ErrorHandler("Không tìm thấy người dùng", 404));
   }
 
   res.status(200).json({
     success: true,
-    message: "Lay diem thanh cong",
+    message: "Lấy điểm thành công",
     data: {
       points: user.rewardPoints,
       membershipLevel: user.membershipLevel,
@@ -147,7 +147,7 @@ export const getRewardHistory = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Lay lich su tich diem thanh cong",
+    message: "Lấy lịch sử tích điểm thành công",
     data: {
       history,
       pagination: {
@@ -166,31 +166,31 @@ export const redeemPoints = asyncHandler(async (req, res, next) => {
   const userId = req.userId;
 
   if (!Number.isInteger(points) || points <= 0) {
-    return next(new ErrorHandler("So diem khong hop le", 400));
+    return next(new ErrorHandler("Số điểm không hợp lệ", 400));
   }
 
   try {
     const user = await User.findById(userId);
     if (!user) {
-      throw new ErrorHandler("User not found", 404);
+      throw new ErrorHandler("Không tìm thấy người dùng", 404);
     }
 
     if (user.rewardPoints < points) {
-      throw new ErrorHandler("Khong du diem de thuc hien giao dich", 400);
+      throw new ErrorHandler("Không đủ điểm để thực hiện giao dịch", 400);
     }
 
     const discountAmount = points * 100;
 
     if (orderTotal && discountAmount > orderTotal) {
-      throw new ErrorHandler("Khong duoc redeem qua tong gia tri don hang", 400);
+      throw new ErrorHandler("Không được đổi điểm vượt quá tổng giá trị đơn hàng", 400);
     }
 
     user.rewardPoints -= points;
     await user.save();
 
     const description = orderId
-      ? `Da dung ${points} diem de giam gia don hang ${orderId}`
-      : `Da dung ${points} diem de giam gia don hang`;
+      ? `Đã dùng ${points} điểm để giảm giá đơn hàng ${orderId}`
+      : `Đã dùng ${points} điểm để giảm giá đơn hàng`;
 
     await RewardPointHistory.create({
       user: userId,
@@ -202,7 +202,7 @@ export const redeemPoints = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "Doi diem thanh cong",
+      message: "Đổi điểm thành công",
       data: {
         pointsUsed: points,
         discountAmount,

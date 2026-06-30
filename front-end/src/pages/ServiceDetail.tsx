@@ -72,7 +72,11 @@ const ServiceDetail: React.FC = () => {
   const [rewardPointsToUse, setRewardPointsToUse] = useState(0);
 
   const auth = useAuthStore() as any;
-  const { points } = useReward();
+  const { points, sessionRedeemedPoints, fetchHistory } = useReward();
+
+  useEffect(() => {
+    fetchHistory(1);
+  }, [fetchHistory]);
 
   useEffect(() => {
     const fetchServiceData = async () => {
@@ -104,9 +108,10 @@ const ServiceDetail: React.FC = () => {
   const images = useMemo(() => (service ? getServiceImages(service) : []), [service]);
   const designer = service?.designer || service?.designerId;
   const displayPrice = service ? service.discountPrice || service.price : 0;
-  const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1) / 100)));
+  const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1 - sessionRedeemedPoints * 100) / 100)));
+  const totalRewardDiscount = (sessionRedeemedPoints + rewardPointsToUse) * 100;
   const rewardDiscount = rewardPointsToUse * 100;
-  const payableAmount = Math.max(displayPrice - rewardDiscount, 0);
+  const payableAmount = Math.max(displayPrice - totalRewardDiscount, 0);
 
   useEffect(() => {
     if (rewardPointsToUse > maxRewardPointsToUse) {
@@ -138,7 +143,7 @@ const ServiceDetail: React.FC = () => {
 
       const response = await axios.post(
         "http://localhost:3000/api/v1/payments/create-url",
-        { serviceId: id, rewardPointsToUse: isServicePackageDetail ? 0 : rewardPointsToUse },
+        { serviceId: id, rewardPointsToUse: isServicePackageDetail ? 0 : sessionRedeemedPoints + rewardPointsToUse },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -246,6 +251,17 @@ const ServiceDetail: React.FC = () => {
                 <span style={styles.rewardTitle}>Dùng điểm thưởng</span>
                 <span style={styles.rewardBalance}>{points.toLocaleString("vi-VN")} điểm</span>
               </div>
+
+              {sessionRedeemedPoints > 0 && (
+                <div style={styles.rewardAlreadyUsed}>
+                  <span>Đã đổi từ trang Rewards:</span>
+                  <span>
+                    <strong style={{ color: "#7c3aed" }}>-{sessionRedeemedPoints.toLocaleString("vi-VN")} điểm</strong>
+                    <span style={{ color: "#6b7280", marginLeft: "6px" }}>({(sessionRedeemedPoints * 100).toLocaleString("vi-VN")}đ)</span>
+                  </span>
+                </div>
+              )}
+
               <div style={styles.rewardControl}>
                 <input
                   type="number"
@@ -267,7 +283,7 @@ const ServiceDetail: React.FC = () => {
                 </button>
               </div>
               <div style={styles.rewardSummary}>
-                <span>Giảm {rewardDiscount.toLocaleString("vi-VN")} đ</span>
+                <span>Giảm {totalRewardDiscount.toLocaleString("vi-VN")} đ</span>
                 <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
               </div>
             </div>
@@ -351,6 +367,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   rewardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "10px" },
   rewardTitle: { fontSize: "14px", fontWeight: "700", color: "#111" },
   rewardBalance: { fontSize: "13px", fontWeight: "600", color: "#b45309" },
+  rewardAlreadyUsed: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#6b7280", backgroundColor: "#f3f0ff", border: "1px solid #ede9fe", borderRadius: "8px", padding: "8px 10px", marginBottom: "10px" },
   rewardControl: { display: "grid", gridTemplateColumns: "1fr auto", gap: "8px", marginBottom: "10px" },
   rewardInput: { minWidth: 0, border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", fontWeight: "600", outline: "none" },
   rewardMaxBtn: { border: "1px solid #0075f2", borderRadius: "8px", padding: "0 12px", backgroundColor: "#fff", color: "#0075f2", fontSize: "13px", fontWeight: "700", cursor: "pointer" },
