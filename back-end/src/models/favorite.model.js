@@ -9,8 +9,13 @@ const FavoriteSchema = new mongoose.Schema(
     },
     service: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ServicePackage",
+      refPath: "serviceType",
       required: true,
+    },
+    serviceType: {
+      type: String,
+      enum: ["ServicePackage", "Service"],
+      default: "ServicePackage",
     },
   },
   {
@@ -19,7 +24,7 @@ const FavoriteSchema = new mongoose.Schema(
 );
 
 // Tạo unique index để chống lưu trùng
-FavoriteSchema.index({ user: 1, service: 1 }, { unique: true });
+FavoriteSchema.index({ user: 1, service: 1, serviceType: 1 }, { unique: true });
 
 // Index để tối ưu query
 FavoriteSchema.index({ user: 1 });

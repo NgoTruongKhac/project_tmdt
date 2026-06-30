@@ -2,7 +2,10 @@ import moment from "moment";
 import crypto from "crypto";
 import { Payment } from "../models/payment.model.js";
 import { Service } from "../models/service.model.js";
+import { Order } from "../models/order.model.js";
+import { User } from "../models/user.model.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
+import { earnPointsForOrder, redeemPointsForOrder } from "./rewardController.js";
 import axios from "axios";
 import sharp from "sharp";
 
@@ -12,13 +15,59 @@ const VNP_HASHSECRET = "LPY25CJWW3YNRHII4VEKD9MCWT8PGHGO";
 const VNP_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 const VNP_RETURNURL = "http://localhost:5173/payment-success";
 
+const createOrderForPayment = async (payment) => {
+    const orderData = {
+        customer: payment.userId,
+        designer: payment.designerId,
+        orderCode: payment.orderId,
+        status: "pending",
+        paymentStatus: "paid",
+        paymentMethod: "vnpay",
+        totalAmount: payment.amount,
+        currency: "VND",
+        notes: payment.rewardPointsUsed
+            ? `Da dung ${payment.rewardPointsUsed} diem, giam ${payment.discountAmount} VND`
+            : "",
+    };
+
+    orderData.service = payment.serviceId;
+
+    await Order.updateOne(
+        { orderCode: payment.orderId },
+        { $setOnInsert: orderData },
+        { upsert: true }
+    );
+};
+
 export const createPaymentUrl = async (req, res, next) => {
     try {
         const { serviceId } = req.body;
+        const rewardPointsToUse = Number(req.body.rewardPointsToUse || 0);
         const userId = req.userId;
 
         const service = await Service.findById(serviceId);
+        const designerId = service?.designerId;
+        const originalAmount = service?.price || 0;
+
+        const discountAmount = rewardPointsToUse * 100;
+        const amountToPay = originalAmount - discountAmount;
         if (!service) throw new ErrorHandler("Dịch vụ không tồn tại", 404);
+
+        if (!designerId) throw new ErrorHandler("Dich vu chua co designer", 400);
+
+        if (!Number.isInteger(rewardPointsToUse) || rewardPointsToUse < 0) {
+            throw new ErrorHandler("So diem doi khong hop le", 400);
+        }
+        if (rewardPointsToUse > 0) {
+            const user = await User.findById(userId).select("rewardPoints");
+            if (!user) throw new ErrorHandler("User not found", 404);
+            if (user.rewardPoints < rewardPointsToUse) {
+                throw new ErrorHandler("Khong du diem de doi", 400);
+            }
+            if (amountToPay <= 0) {
+                throw new ErrorHandler("So tien giam phai nho hon tong gia tri don hang", 400);
+            }
+        }
 
         const date = new Date();
         const createDate = moment(date).format("YYYYMMDDHHmmss");
@@ -28,7 +77,11 @@ export const createPaymentUrl = async (req, res, next) => {
             orderId,
             userId,
             serviceId,
-            amount: service.price,
+            designerId,
+            amount: amountToPay,
+            originalAmount,
+            rewardPointsUsed: rewardPointsToUse,
+            discountAmount,
             status: "pending"
         });
 
@@ -41,7 +94,7 @@ export const createPaymentUrl = async (req, res, next) => {
             "vnp_TxnRef": orderId,
             "vnp_OrderInfo": "Thanh toan dich vu " + orderId,
             "vnp_OrderType": "other",
-            "vnp_Amount": Math.round(service.price * 100),
+            "vnp_Amount": Math.round(amountToPay * 100),
             "vnp_ReturnUrl": VNP_RETURNURL,
             "vnp_IpAddr": "127.0.0.1",
             "vnp_CreateDate": createDate,
@@ -82,7 +135,13 @@ export const createPaymentUrl = async (req, res, next) => {
 
         const finalUrl = VNP_URL + "?" + query + "&vnp_SecureHash=" + signed;
 
-        res.status(200).json({ paymentUrl: finalUrl });
+        res.status(200).json({
+            paymentUrl: finalUrl,
+            orderId,
+            originalAmount,
+            discountAmount,
+            amount: amountToPay
+        });
     } catch (error) {
         next(error);
     }
@@ -120,13 +179,26 @@ export const vnpayReturn = async (req, res, next) => {
         if (secureHash === signed) {
             const orderId = vnp_Params["vnp_TxnRef"];
             if (vnp_Params["vnp_ResponseCode"] === "00") {
-                await Payment.findOneAndUpdate(
-                    { orderId },
-                    { status: "success", paymentDate: new Date(), vnpayTranNo: vnp_Params["vnp_TransactionNo"] }
+                const payment = await Payment.findOneAndUpdate(
+                    { orderId, status: { $ne: "success" } },
+                    { status: "success", paymentDate: new Date(), vnpayTranNo: vnp_Params["vnp_TransactionNo"] },
+                    { new: true }
                 );
+
+                if (payment) {
+                    await redeemPointsForOrder(
+                        payment.userId,
+                        payment.orderId,
+                        payment.rewardPointsUsed,
+                        payment.originalAmount
+                    );
+                    await earnPointsForOrder(payment.userId, payment.orderId, payment.amount);
+                    await createOrderForPayment(payment);
+                }
+
                 return res.status(200).json({ success: true });
             }
-            await Payment.findOneAndUpdate({ orderId }, { status: "failed" });
+            await Payment.findOneAndUpdate({ orderId, status: { $ne: "success" } }, { status: "failed" });
             return res.status(200).json({ success: false });
         }
         res.status(400).json({ message: "Chữ ký trả về không hợp lệ" });

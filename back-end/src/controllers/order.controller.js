@@ -18,6 +18,21 @@ const formatOrderResponse = (order) => {
         status: order.servicePackage.status,
         isActive: order.servicePackage.isActive,
       }
+    : order.service
+    ? {
+        id: order.service._id,
+        name: order.service.title,
+        description: order.service.description,
+        price: order.service.price,
+        discountPrice: null,
+        thumbnail: order.service.images?.[0] || "",
+        category: order.service.category,
+        listingType: "product",
+        revisions: order.service.revisions,
+        deliveryTime: 3,
+        status: order.service.status,
+        isActive: true,
+      }
     : null;
 
   const designer = order.designer
@@ -79,6 +94,10 @@ const ORDER_POPULATE = [
     select:
       "name description price discountPrice thumbnail category revisions deliveryTime status isActive",
   },
+  {
+    path: "service",
+    select: "title description price images category revisions status",
+  },
 ];
 
 // Lấy lịch sử đơn hàng của khách hàng (customer)
@@ -96,12 +115,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
 
   const [orders, totalItems] = await Promise.all([
     Order.find(query)
-      .populate("designer", "fullName profilePicture role bio rating")
-      .populate({
-        path: "servicePackage",
-        select:
-          "name description price discountPrice thumbnail category revisions deliveryTime status isActive",
-      })
+      .populate(ORDER_POPULATE)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit),
@@ -133,13 +147,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  const order = await Order.findById(orderId)
-    .populate("designer", "fullName profilePicture role bio rating")
-    .populate({
-      path: "servicePackage",
-      select:
-        "name description price discountPrice thumbnail category revisions deliveryTime status isActive",
-    });
+  const order = await Order.findById(orderId).populate(ORDER_POPULATE);
 
   if (!order) {
     return res.status(404).json({
@@ -217,6 +225,7 @@ export const getDesignerOrders = asyncHandler(async (req, res) => {
         select:
           "name description price discountPrice thumbnail category revisions deliveryTime status isActive",
       })
+      .populate("service", "title description price images category revisions status")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit),

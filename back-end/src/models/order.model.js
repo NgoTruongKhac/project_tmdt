@@ -17,7 +17,12 @@ const OrderSchema = new mongoose.Schema(
     servicePackage: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ServicePackage",
-      required: true,
+      index: true,
+    },
+    service: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Service",
+      default: null,
       index: true,
     },
     orderCode: {

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useReward } from "../contexts/RewardContext";
 
 const PaymentSuccess: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { fetchRewards, fetchHistory } = useReward();
     const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
     const [orderId, setOrderId] = useState<string | null>(null);
 
@@ -16,13 +18,19 @@ const PaymentSuccess: React.FC = () => {
 
             try {
                 const response = await axios.get(`http://localhost:3000/api/v1/payments/vnpay-return${location.search}`);
-                setStatus(response.data.success ? "success" : "failed");
+                if (response.data.success) {
+                    await fetchRewards();
+                    await fetchHistory();
+                    setStatus("success");
+                } else {
+                    setStatus("failed");
+                }
             } catch {
                 setStatus("failed");
             }
         };
         verifyPayment();
-    }, [location]);
+    }, [fetchHistory, fetchRewards, location]);
 
     const getCookie = (name: string) => {
         const value = `; ${document.cookie}`;
