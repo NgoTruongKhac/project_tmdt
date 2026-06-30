@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/utils/validationSchema";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { loginWithGoogle } from "@/api/authApi";
+import { useNavigate } from "react-router-dom";
 
 import z from "zod";
 import toast from "react-hot-toast";
@@ -20,6 +21,7 @@ export default function Login() {
     mode: "onChange",
   });
 
+  const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
 
   const onSubmit = async (data: { email: string; password: string }) => {
@@ -27,7 +29,12 @@ export default function Login() {
       await login(data.email, data.password);
 
       toast.success("Đăng nhập thành công");
-      window.location.replace("/");
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser?.role === "admin" || currentUser?.role === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (error: any) {
       toast.error("Đăng nhập thất bại");
     }
