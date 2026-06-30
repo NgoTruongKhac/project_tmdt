@@ -19,14 +19,11 @@ export const updateProfilePicture = async (file: File) => {
   return response.data;
 };
 
-export const transferRoleDesigner = async (designerData: {
-  age: number;
-  degree: string;
-  major: string;
-  experienceYears: number;
-  portfolioUrl: string;
-  skills: string[];
-}) => {
-  const response = await api.post("/user/transfer-role-designer", designerData);
+export const transferRoleDesigner = async (formData: FormData) => {
+  const response = await api.post("/user/transfer-role-designer", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
