@@ -26,7 +26,7 @@ const createOrderForPayment = async (payment) => {
         totalAmount: payment.amount,
         currency: "VND",
         notes: payment.rewardPointsUsed
-            ? `Da dung ${payment.rewardPointsUsed} diem, giam ${payment.discountAmount} VND`
+            ? `Đã dùng ${payment.rewardPointsUsed} điểm, giảm ${payment.discountAmount.toLocaleString("vi-VN")} VND`
             : "",
     };
 

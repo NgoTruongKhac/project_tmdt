@@ -11,7 +11,6 @@ import Profile from "./pages/Profile";
 import AuthGoogle from "./pages/AuthGoogle";
 import MyOrders from "./pages/MyOrders";
 import OrderHistory from "./pages/OrderHistory";
-import ServiceMarketplace from "./pages/ServiceMarketplace";
 import ServiceDetail from "./pages/ServiceDetail";
 import Order from "./pages/Order";
 import DesignerServices from "./pages/DesignerServices";
@@ -63,10 +62,7 @@ function App() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/orders" element={<OrderHistory />} />
-            <Route
-              path="/services-marketplace"
-              element={<ServiceMarketplace />}
-            />
+
             <Route path="/designer/:designerId" element={<DesignerProfile />} />
             <Route
               path="/designer/:designerId/services"

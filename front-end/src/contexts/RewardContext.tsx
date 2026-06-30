@@ -8,8 +8,11 @@ interface RewardContextType {
   membershipLevel: string;
   history: RewardHistoryItem[];
   loading: boolean;
+  sessionRedeemedPoints: number;
   fetchRewards: () => Promise<void>;
   fetchHistory: (page?: number) => Promise<void>;
+  addSessionRedeemedPoints: (pts: number) => void;
+  resetSessionRedeemedPoints: () => void;
 }
 
 const RewardContext = createContext<RewardContextType | undefined>(undefined);
@@ -19,7 +22,8 @@ export const RewardProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [membershipLevel, setMembershipLevel] = useState<string>("Bronze");
   const [history, setHistory] = useState<RewardHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  
+  const [sessionRedeemedPoints, setSessionRedeemedPoints] = useState<number>(0);
+
   const user = useAuthStore((state) => state.user);
 
   const fetchRewards = useCallback(async () => {
@@ -29,7 +33,7 @@ export const RewardProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       const res = await rewardApi.getMyRewards();
@@ -56,12 +60,32 @@ export const RewardProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [user]);
 
+  const addSessionRedeemedPoints = useCallback((pts: number) => {
+    setSessionRedeemedPoints((prev) => prev + pts);
+  }, []);
+
+  const resetSessionRedeemedPoints = useCallback(() => {
+    setSessionRedeemedPoints(0);
+  }, []);
+
   useEffect(() => {
     fetchRewards();
   }, [fetchRewards]);
 
   return (
-    <RewardContext.Provider value={{ points, membershipLevel, history, loading, fetchRewards, fetchHistory }}>
+    <RewardContext.Provider
+      value={{
+        points,
+        membershipLevel,
+        history,
+        loading,
+        sessionRedeemedPoints,
+        fetchRewards,
+        fetchHistory,
+        addSessionRedeemedPoints,
+        resetSessionRedeemedPoints,
+      }}
+    >
       {children}
     </RewardContext.Provider>
   );
