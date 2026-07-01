@@ -72,7 +72,11 @@ const ServiceDetail: React.FC = () => {
   const [rewardPointsToUse, setRewardPointsToUse] = useState(0);
 
   const auth = useAuthStore() as any;
-  const { points } = useReward();
+  const { points, sessionRedeemedPoints, fetchHistory } = useReward();
+
+  useEffect(() => {
+    fetchHistory(1);
+  }, [fetchHistory]);
 
   useEffect(() => {
     const fetchServiceData = async () => {
@@ -81,8 +85,11 @@ const ServiceDetail: React.FC = () => {
         setError("");
 
         const detailType = searchParams.get("type");
-        const query = detailType ? `?type=${encodeURIComponent(detailType)}` : "";
-        const response = await axios.get(`http://localhost:3000/api/v1/services/${id}${query}`);
+        const detailEndpoint =
+          detailType === "servicePackage"
+            ? `http://localhost:3000/api/v1/services/package/${id}`
+            : `http://localhost:3000/api/v1/services/${id}`;
+        const response = await axios.get(detailEndpoint);
         const payload = response.data;
         const data = payload.data || {};
         const serviceData = payload.service || data.service || data;
@@ -104,9 +111,9 @@ const ServiceDetail: React.FC = () => {
   const images = useMemo(() => (service ? getServiceImages(service) : []), [service]);
   const designer = service?.designer || service?.designerId;
   const displayPrice = service ? service.discountPrice || service.price : 0;
-  const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1) / 100)));
-  const rewardDiscount = rewardPointsToUse * 100;
-  const payableAmount = Math.max(displayPrice - rewardDiscount, 0);
+  const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1 - sessionRedeemedPoints * 100) / 100)));
+  const totalRewardDiscount = (sessionRedeemedPoints + rewardPointsToUse) * 100;
+  const payableAmount = Math.max(displayPrice - totalRewardDiscount, 0);
 
   useEffect(() => {
     if (rewardPointsToUse > maxRewardPointsToUse) {
@@ -138,7 +145,7 @@ const ServiceDetail: React.FC = () => {
 
       const response = await axios.post(
         "http://localhost:3000/api/v1/payments/create-url",
-        { serviceId: id, rewardPointsToUse: isServicePackageDetail ? 0 : rewardPointsToUse },
+        { serviceId: id, rewardPointsToUse: isServicePackageDetail ? 0 : sessionRedeemedPoints + rewardPointsToUse },
         {
           headers: {
             Authorization: `Bearer ${token}`,

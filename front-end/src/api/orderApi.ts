@@ -9,6 +9,7 @@ export interface OrderItem {
   paymentStatus: string;
   paymentMethod: string;
   notes?: string;
+  customerImage?: string;
   cancellationReason?: string;
   cancelledAt?: string | null;
   createdAt: string;

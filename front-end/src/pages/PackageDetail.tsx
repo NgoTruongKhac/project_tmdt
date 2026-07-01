@@ -84,7 +84,7 @@ const PackageDetail: React.FC = () => {
                 setLoading(true);
                 setError("");
                 // Trang này mặc định lấy dữ liệu package
-                const response = await axios.get(`http://localhost:3000/api/v1/services/${id}?type=package`);
+                const response = await axios.get(`http://localhost:3000/api/v1/services/package/${id}`);
                 const payload = response.data;
                 const data = payload.data || {};
                 const serviceData = payload.service || data.service || data;
@@ -141,15 +141,23 @@ const PackageDetail: React.FC = () => {
                 return;
             }
 
-            // Tạm thời chưa lưu note và file vào DB theo yêu cầu của bạn, chỉ log ra để tránh lỗi ESLint unused-vars
-            if (selectedFile) console.log("File đính kèm:", selectedFile.name);
-            if (userNote) console.log("Yêu cầu:", userNote);
+            const formData = new FormData();
+            formData.append("serviceId", id || "");
+            formData.append("serviceType", "ServicePackage");
+            formData.append("rewardPointsToUse", String(rewardPointsToUse));
+            formData.append("notes", userNote.trim());
+            if (selectedFile) {
+                formData.append("customerImage", selectedFile);
+            }
 
             const response = await axios.post(
                 "http://localhost:3000/api/v1/payments/create-url",
-                { serviceId: id, rewardPointsToUse: rewardPointsToUse },
+                formData,
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data",
+                    },
                     withCredentials: true,
                 }
             );

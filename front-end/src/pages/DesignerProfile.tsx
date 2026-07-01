@@ -151,7 +151,7 @@ export default function DesignerProfile() {
                   {services.slice(0, 3).map((service) => (
                     <Link
                       key={service._id}
-                      to={`/service/${service._id}?type=servicePackage`}
+                      to={`/package/${service._id}`}
                       className="overflow-hidden rounded-2xl border border-neutral-100 transition hover:shadow-md"
                     >
                       <img

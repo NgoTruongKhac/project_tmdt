@@ -670,7 +670,7 @@ export const getServicePackageById = asyncHandler(async (req, res) => {
 // Tạo Service mới & Lưu các ảnh gốc
 export const createService = async (req, res) => {
   try {
-    const { title, price, description, designerId } = req.body;
+    const { title, price, description, designerId, category } = req.body;
     const files = req.files;
     const imagePaths = [];
     // Upload từng file lên Cloudinary
@@ -695,10 +695,10 @@ export const createService = async (req, res) => {
       images: imagePaths
     });
 
-    res.status(201).json({ message: "Tạo sản phẩm thành công", service: newService });
+    res
+      .status(201)
+      .json({ message: "Tạo sản phẩm thành công", service: newService });
   } catch (error) {
     res.status(500).json({ message: "Lỗi tạo sản phẩm", error: error.message });
   }
 };
-
-

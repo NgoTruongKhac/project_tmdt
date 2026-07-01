@@ -103,7 +103,7 @@ export default function DesignerHoverCard({
         {services.slice(0, 6).map((service) => (
           <Link
             key={service._id}
-            to={`/service/${service._id}?type=servicePackage`}
+            to={`/package/${service._id}`}
             className="aspect-square overflow-hidden rounded-xl bg-neutral-100"
           >
             <img

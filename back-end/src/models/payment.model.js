@@ -15,6 +15,8 @@ const PaymentSchema = new mongoose.Schema(
         originalAmount: { type: Number, required: true },
         rewardPointsUsed: { type: Number, default: 0 },
         discountAmount: { type: Number, default: 0 },
+        notes: { type: String, default: "" },
+        customerImage: { type: String, default: "" },
         vnpayTranNo: { type: String }, // Mã giao dịch của VNPay trả về
         status: {
             type: String,

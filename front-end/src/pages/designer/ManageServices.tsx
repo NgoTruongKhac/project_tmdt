@@ -9,6 +9,7 @@ import {
 } from "../../api/serviceApi";
 import ServiceDetailModal from "@/components/ServiceDetailModal";
 import ServiceFormModal from "@/components/ServiceFormModal";
+import ServiceModal from "@/components/ServiceModal";
 
 const statusConfig: Record<string, { label: string; badge: string }> = {
   approved: { label: "Đã duyệt", badge: "badge-success" },
@@ -51,6 +52,7 @@ export default function ManageServices() {
 
   const [deleteTarget, setDeleteTarget] = useState<ServicePackage | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   const fetchServices = useCallback(async () => {
     if (!designerId) return;
@@ -92,6 +94,11 @@ export default function ManageServices() {
     setIsFormOpen(true);
   };
 
+  const handleCreate2 = () => {
+    setFormMode("create");
+    setIsProductModalOpen(true);
+  };
+
   const handleEdit = async (service: ServicePackage) => {
     try {
       const res = await getServicePackageById(service._id);
@@ -126,10 +133,19 @@ export default function ManageServices() {
             Quản lý các dịch vụ thiết kế bạn đang cung cấp trên nền tảng
           </p>
         </div>
-        <button onClick={handleCreate} className="btn btn-primary gap-2">
-          <Plus className="h-4 w-4" />
-          Tạo dịch vụ mới
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleCreate2}
+            className="btn btn-outline btn-primary gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Tạo sản phẩm mới
+          </button>
+          <button onClick={handleCreate} className="btn btn-primary gap-2">
+            <Plus className="h-4 w-4" />
+            Tạo gói dịch vụ mới
+          </button>
+        </div>
       </div>
 
       <div role="tablist" className="tabs tabs-boxed w-fit">
@@ -294,6 +310,15 @@ export default function ManageServices() {
           service={formMode === "edit" ? selectedService : null}
           onClose={() => setIsFormOpen(false)}
           onSuccess={fetchServices}
+        />
+      )}
+      {designerId && (
+        <ServiceModal
+          isOpen={isProductModalOpen}
+          mode={formMode}
+          designerId={designerId}
+          onClose={() => setIsProductModalOpen(false)}
+          onSuccess={fetchServices} // Tự động reload danh sách khi thêm mới thành công
         />
       )}
 
