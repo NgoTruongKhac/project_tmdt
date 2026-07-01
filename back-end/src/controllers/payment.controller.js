@@ -193,19 +193,16 @@ export const vnpayReturn = async (req, res, next) => {
         delete vnp_Params["vnp_SecureHash"];
         delete vnp_Params["vnp_SecureHashType"];
 
-        // Sắp xếp tham số nhận về
         const sortedParams = {};
         Object.keys(vnp_Params).sort().forEach(key => {
             sortedParams[key] = vnp_Params[key];
         });
 
-        // Tạo lại chuỗi signData từ params nhận về để kiểm tra chữ ký
         let signData = "";
         const keys = Object.keys(sortedParams);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = sortedParams[key];
-            // Lưu ý: vnp_Params từ req.query đã được decode, nên phải encode lại giống lúc gửi
             signData += encodeURIComponent(key).replace(/%20/g, "+") + "=" +
                 encodeURIComponent(value).replace(/%20/g, "+");
             if (i < keys.length - 1) signData += "&";
@@ -217,24 +214,39 @@ export const vnpayReturn = async (req, res, next) => {
         if (secureHash === signed) {
             const orderId = vnp_Params["vnp_TxnRef"];
             if (vnp_Params["vnp_ResponseCode"] === "00") {
-                const payment = await Payment.findOneAndUpdate(
+                // Cập nhật trạng thái nếu chưa thành công
+                let payment = await Payment.findOneAndUpdate(
                     { orderId, status: { $ne: "success" } },
                     { status: "success", paymentDate: new Date(), vnpayTranNo: vnp_Params["vnp_TransactionNo"] },
                     { new: true }
                 );
 
-                if (payment) {
-                    await redeemPointsForOrder(
-                        payment.userId,
-                        payment.orderId,
-                        payment.rewardPointsUsed,
-                        payment.originalAmount
-                    );
-                    await earnPointsForOrder(payment.userId, payment.orderId, payment.amount);
-                    await createOrderForPayment(payment);
+                // Trường hợp thanh toán đã được cập nhật trước đó (do IPN hoặc refresh trang)
+                if (!payment) {
+                    payment = await Payment.findOne({ orderId });
                 }
 
-                return res.status(200).json({ success: true });
+                if (payment && payment.status === "success") {
+                    // Xử lý điểm thưởng và tạo Order (chỉ chạy 1 lần nhờ check payment status phía trên)
+                    // Lưu ý: Logic này nên bọc trong check để tránh tạo trùng Order
+                    const existingOrder = await Order.findOne({ orderCode: orderId });
+                    if (!existingOrder) {
+                        await redeemPointsForOrder(
+                            payment.userId,
+                            payment.orderId,
+                            payment.rewardPointsUsed,
+                            payment.originalAmount
+                        );
+                        await earnPointsForOrder(payment.userId, payment.orderId, payment.amount);
+                        await createOrderForPayment(payment);
+                    }
+
+                    // TRẢ VỀ THÊM serviceType ĐỂ FRONTEND XỬ LÝ ẨN/HIỆN NÚT DOWNLOAD
+                    return res.status(200).json({
+                        success: true,
+                        serviceType: payment.serviceType // "Service" hoặc "ServicePackage"
+                    });
+                }
             }
             await Payment.findOneAndUpdate({ orderId, status: { $ne: "success" } }, { status: "failed" });
             return res.status(200).json({ success: false });
