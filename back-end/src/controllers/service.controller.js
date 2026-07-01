@@ -329,9 +329,8 @@ export const getServiceDetail = async (req, res) => {
     // Tìm dịch vụ tương tự dựa trên category
     const relatedServices = await Service.find({
       _id: { $ne: id },
-      category: service.category,
       status: "approved",
-    }).limit(4).select("title price images category");
+    }).limit(5).select("title price images category");
 
     res.status(200).json({ type: "service", service, relatedServices });
   } catch (error) {

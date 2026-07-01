@@ -163,176 +163,209 @@ const ServiceDetail: React.FC = () => {
   const title = getServiceTitle(service);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.mainGrid}>
-        <div style={styles.leftCol}>
-          <div style={styles.imageSection}>
-            <div style={styles.mainImageWrapper}>
-              {images.length > 0 ? (
-                <img
-                  src={getProtectedServiceImage(images[activeImg])}
-                  alt={title}
-                  style={styles.mainImage}
-                />
-              ) : (
-                <div style={styles.noImage}>Không có ảnh hợp lệ</div>
+      <div style={styles.container}>
+        <div style={styles.mainGrid}>
+          <div style={styles.leftCol}>
+            <div style={styles.imageSection}>
+              <div style={styles.mainImageWrapper}>
+                {images.length > 0 ? (
+                    <img
+                        src={getProtectedServiceImage(images[activeImg])}
+                        alt={title}
+                        style={styles.mainImage}
+                    />
+                ) : (
+                    <div style={styles.noImage}>Không có ảnh hợp lệ</div>
+                )}
+              </div>
+
+              {images.length > 0 && (
+                  <div style={styles.thumbnailRow}>
+                    {images.map((img, idx) => (
+                        <button
+                            key={`${img}-${idx}`}
+                            type="button"
+                            onClick={() => setActiveImg(idx)}
+                            style={{
+                              ...styles.thumbContainer,
+                              border: activeImg === idx ? "2px solid #8b5cf6" : "1px solid #eee",
+                            }}
+                        >
+                          <img
+                              src={getProtectedServiceImage(img)}
+                              style={styles.thumbImg}
+                              alt={`${title} ${idx + 1}`}
+                          />
+                        </button>
+                    ))}
+                  </div>
               )}
             </div>
 
-            {images.length > 0 && (
-              <div style={styles.thumbnailRow}>
-                {images.map((img, idx) => (
-                  <button
-                    key={`${img}-${idx}`}
-                    type="button"
-                    onClick={() => setActiveImg(idx)}
-                    style={{
-                      ...styles.thumbContainer,
-                      border: activeImg === idx ? "2px solid #8b5cf6" : "1px solid #eee",
-                    }}
-                  >
+            <div style={styles.infoSection}>
+              {designer && (
+                  <div style={styles.designerRow}>
                     <img
-                      src={getProtectedServiceImage(img)}
-                      style={styles.thumbImg}
-                      alt={`${title} ${idx + 1}`}
+                        src={
+                            designer.profilePicture ||
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(designer.fullName || "Designer")}`
+                        }
+                        style={styles.miniAvatar}
+                        alt={designer.fullName}
                     />
-                  </button>
-                ))}
-              </div>
-            )}
+                    <div>
+                      <div style={styles.designerNameName}>
+                        {designer.fullName} <span style={styles.proBadge}>PRO</span>
+                      </div>
+                      <div style={styles.ratingText}>
+                        ★ {designer.rating ?? 0} - Designer
+                      </div>
+                    </div>
+                  </div>
+              )}
+
+              <h1 style={styles.titleText}>{title}</h1>
+              <p style={styles.descriptionText}>
+                {service.description || "Chưa có mô tả cho dịch vụ này."}
+              </p>
+            </div>
           </div>
 
-          <div style={styles.infoSection}>
-            {designer && (
-              <div style={styles.designerRow}>
-                <img
-                  src={
-                    designer.profilePicture ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(designer.fullName || "Designer")}`
-                  }
-                  style={styles.miniAvatar}
-                  alt={designer.fullName}
-                />
-                <div>
-                  <div style={styles.designerNameName}>
-                    {designer.fullName} <span style={styles.proBadge}>PRO</span>
-                  </div>
-                  <div style={styles.ratingText}>
-                    ★ {designer.rating ?? 0} - Designer
-                  </div>
-                </div>
+          <div style={styles.rightCol}>
+            <div style={styles.pricingCard}>
+              <div style={styles.priceSection}>
+                <span style={styles.priceValue}>{displayPrice.toLocaleString("vi-VN")} đ</span>
+                {service.discountPrice ? (
+                    <span style={styles.originalPrice}>{service.price.toLocaleString("vi-VN")} đ</span>
+                ) : null}
               </div>
-            )}
 
-            <h1 style={styles.titleText}>{title}</h1>
-            <p style={styles.descriptionText}>
-              {service.description || "Chưa có mô tả cho dịch vụ này."}
-            </p>
+              {!isServicePackageDetail && (
+                  <div style={styles.rewardBox}>
+                    <div style={styles.rewardHeader}>
+                      <span style={styles.rewardTitle}>Dùng điểm thưởng</span>
+                      <span style={styles.rewardBalance}>{points.toLocaleString("vi-VN")} điểm</span>
+                    </div>
+                    <div style={styles.rewardControl}>
+                      <input
+                          type="number"
+                          min={0}
+                          max={maxRewardPointsToUse}
+                          value={rewardPointsToUse}
+                          onChange={(event) => {
+                            const nextValue = Number(event.target.value || 0);
+                            setRewardPointsToUse(Math.max(0, Math.min(maxRewardPointsToUse, nextValue)));
+                          }}
+                          style={styles.rewardInput}
+                      />
+                      <button
+                          type="button"
+                          onClick={() => setRewardPointsToUse(maxRewardPointsToUse)}
+                          style={styles.rewardMaxBtn}
+                      >
+                        Tối đa
+                      </button>
+                    </div>
+                    <div style={styles.rewardSummary}>
+                      <span>Giảm {rewardDiscount.toLocaleString("vi-VN")} đ</span>
+                      <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
+                    </div>
+                  </div>
+              )}
+
+              <div style={styles.serviceCommitment}>
+                <div style={styles.featureItem}>✓ Nhận file sau khi thanh toán</div>
+                <div style={styles.featureItem}>✓ Hỗ trợ chỉnh sửa theo gói dịch vụ</div>
+                <div style={styles.featureItem}>✓ Tùy chọn định dạng PNG, JPG, SVG</div>
+                <div style={styles.featureItem}>✓ Được sử dụng cho mục đích thương mại</div>
+              </div>
+
+              <button style={styles.orderBtn} onClick={handlePayment}>
+                Mua ngay
+              </button>
+              <button style={styles.contactBtn}>Liên hệ Designer</button>
+            </div>
           </div>
         </div>
 
-        <div style={styles.rightCol}>
-          <div style={styles.pricingCard}>
-            <div style={styles.priceSection}>
-              <span style={styles.priceValue}>{displayPrice.toLocaleString("vi-VN")} đ</span>
-              {service.discountPrice ? (
-                <span style={styles.originalPrice}>{service.price.toLocaleString("vi-VN")} đ</span>
-              ) : null}
-            </div>
-
-            {!isServicePackageDetail && (
-            <div style={styles.rewardBox}>
-              <div style={styles.rewardHeader}>
-                <span style={styles.rewardTitle}>Dùng điểm thưởng</span>
-                <span style={styles.rewardBalance}>{points.toLocaleString("vi-VN")} điểm</span>
-              </div>
-              <div style={styles.rewardControl}>
-                <input
-                  type="number"
-                  min={0}
-                  max={maxRewardPointsToUse}
-                  value={rewardPointsToUse}
-                  onChange={(event) => {
-                    const nextValue = Number(event.target.value || 0);
-                    setRewardPointsToUse(Math.max(0, Math.min(maxRewardPointsToUse, nextValue)));
-                  }}
-                  style={styles.rewardInput}
-                />
-                <button
-                  type="button"
-                  onClick={() => setRewardPointsToUse(maxRewardPointsToUse)}
-                  style={styles.rewardMaxBtn}
-                >
-                  Tối đa
-                </button>
-              </div>
-              <div style={styles.rewardSummary}>
-                <span>Giảm {rewardDiscount.toLocaleString("vi-VN")} đ</span>
-                <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
-              </div>
-            </div>
-            )}
-
-            <div style={styles.serviceCommitment}>
-              <div style={styles.featureItem}>✓ Nhận file sau khi thanh toán</div>
-              <div style={styles.featureItem}>✓ Hỗ trợ chỉnh sửa theo gói dịch vụ</div>
-              <div style={styles.featureItem}>✓ Tùy chọn định dạng PNG, JPG, SVG</div>
-              <div style={styles.featureItem}>✓ Được sử dụng cho mục đích thương mại</div>
-            </div>
-
-            <button style={styles.orderBtn} onClick={handlePayment}>
-              Mua ngay
-            </button>
-            <button style={styles.contactBtn}>Liên hệ Designer</button>
+        {/*<div style={styles.relatedSection}>*/}
+        {/*  <div style={styles.relatedHeader}>*/}
+        {/*    <h2 style={styles.relatedTitle}>Dịch vụ tương tự</h2>*/}
+        {/*  </div>*/}
+        {/*  <div style={styles.relatedGrid}>*/}
+        {/*    {relatedServices.map((item) => (*/}
+        {/*      isCloudinaryImage(item.images?.[0] || item.thumbnail) && (*/}
+        {/*        <div*/}
+        {/*          key={item._id}*/}
+        {/*          style={styles.relCard}*/}
+        {/*          onClick={() =>*/}
+        {/*            navigate(`/service/${item._id}?type=${item.listingType ? "servicePackage" : "service"}`)*/}
+        {/*          }*/}
+        {/*        >*/}
+        {/*          <div style={styles.relImgBox}>*/}
+        {/*            <img*/}
+        {/*              src={getProtectedServiceImage(item.images?.[0] || item.thumbnail)}*/}
+        {/*              style={styles.relImg}*/}
+        {/*              alt={getServiceTitle(item)}*/}
+        {/*            />*/}
+        {/*          </div>*/}
+        {/*          <div style={styles.relInfo}>*/}
+        {/*            <div style={styles.relTitle}>{getServiceTitle(item)}</div>*/}
+        {/*            <div style={styles.relPrice}>Từ {item.price.toLocaleString("vi-VN")} đ</div>*/}
+        {/*          </div>*/}
+        {/*        </div>*/}
+        {/*      )*/}
+        {/*    ))}*/}
+        {/*  </div>*/}
+        {/*</div>*/}
+        <div style={styles.relatedSection}>
+          <div style={styles.relatedHeader}>
+            <h2 style={styles.relatedTitle}>Gói dịch vụ tương tự</h2>
+          </div>
+          <div style={styles.relatedGrid}>
+            {relatedServices.map((item) => (
+                <div key={item._id} style={styles.relCard} onClick={() => navigate(`/package/${item._id}`)}>
+                  <div style={styles.relImgBox}>
+                    <img src={getProtectedServiceImage(item.thumbnail || item.images?.[0])} style={styles.relImg}
+                         alt="rel"/>
+                  </div>
+                  <div style={styles.relInfo}>
+                    <div style={styles.relTitle}>{getServiceTitle(item)}</div>
+                    <div style={styles.relPrice}>{item.price.toLocaleString("vi-VN")} đ</div>
+                  </div>
+                </div>
+            ))}
           </div>
         </div>
       </div>
-
-      <div style={styles.relatedSection}>
-        <div style={styles.relatedHeader}>
-          <h2 style={styles.relatedTitle}>Dịch vụ tương tự</h2>
-        </div>
-        <div style={styles.relatedGrid}>
-          {relatedServices.map((item) => (
-            isCloudinaryImage(item.images?.[0] || item.thumbnail) && (
-              <div
-                key={item._id}
-                style={styles.relCard}
-                onClick={() =>
-                  navigate(`/service/${item._id}?type=${item.listingType ? "servicePackage" : "service"}`)
-                }
-              >
-                <div style={styles.relImgBox}>
-                  <img
-                    src={getProtectedServiceImage(item.images?.[0] || item.thumbnail)}
-                    style={styles.relImg}
-                    alt={getServiceTitle(item)}
-                  />
-                </div>
-                <div style={styles.relInfo}>
-                  <div style={styles.relTitle}>{getServiceTitle(item)}</div>
-                  <div style={styles.relPrice}>Từ {item.price.toLocaleString("vi-VN")} đ</div>
-                </div>
-              </div>
-            )
-          ))}
-        </div>
-      </div>
-    </div>
   );
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: { maxWidth: "1250px", margin: "0 auto", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a" },
-  centerMsg: { textAlign: "center", padding: "100px", fontSize: "16px" },
-  mainGrid: { display: "grid", gridTemplateColumns: "1fr 360px", gap: "50px", alignItems: "flex-start" },
-  leftCol: { display: "flex", flexDirection: "column" },
-  imageSection: { width: "100%", display: "flex", flexDirection: "column", gap: "12px" },
-  mainImageWrapper: { width: "100%", height: "450px", borderRadius: "20px", overflow: "hidden", backgroundColor: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center" },
-  mainImage: { width: "100%", height: "100%", objectFit: "contain" },
-  noImage: { color: "#777", fontSize: "15px", fontWeight: 600 },
-  thumbnailRow: { display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "5px" },
-  thumbContainer: { width: "70px", height: "50px", flexShrink: 0, borderRadius: "8px", overflow: "hidden", cursor: "pointer", background: "white", padding: 0 },
+  container: {maxWidth: "1250px", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a"},
+  centerMsg: {textAlign: "center", padding: "100px", fontSize: "16px"},
+  mainGrid: {display: "grid", gridTemplateColumns: "1fr 360px", gap: "50px", alignItems: "flex-start"},
+  leftCol: {display: "flex", flexDirection: "column"},
+  imageSection: {width: "100%", display: "flex", flexDirection: "column", gap: "12px"},
+  mainImageWrapper: {
+    width: "100%",
+    height: "450px",
+    borderRadius: "20px",
+    overflow: "hidden",
+    backgroundColor: "#f4f4f4",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  mainImage: {width: "100%", height: "100%", objectFit: "contain"},
+  noImage: {color: "#777", fontSize: "15px", fontWeight: 600},
+  thumbnailRow: {display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "5px"},
+  thumbContainer: {
+    width: "70px",
+    height: "50px",
+    flexShrink: 0,
+    borderRadius: "8px",
+    overflow: "hidden", cursor: "pointer", background: "white", padding: 0 },
   thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   infoSection: { marginTop: "30px" },
   designerRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" },

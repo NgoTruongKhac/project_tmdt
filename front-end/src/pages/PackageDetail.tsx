@@ -339,7 +339,7 @@ const PackageDetail: React.FC = () => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-    container: { maxWidth: "1250px", margin: "0 auto", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a" },
+    container: { maxWidth: "1250px", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a" },
     centerMsg: { textAlign: "center", padding: "100px", fontSize: "16px" },
     mainGrid: { display: "grid", gridTemplateColumns: "1fr 360px", gap: "50px", alignItems: "flex-start" },
     leftCol: { display: "flex", flexDirection: "column" },
