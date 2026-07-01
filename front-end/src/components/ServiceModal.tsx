@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { X, Upload, Loader2 } from "lucide-react";
 import { createServiceProduct } from "@/api/serviceApi";
 

@@ -67,6 +67,10 @@ const OrderSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    customerImage: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );
