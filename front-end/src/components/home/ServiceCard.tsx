@@ -97,10 +97,14 @@ export default function ServiceCard({
 
     const badgeContent = getBadgeContent();
     const views = service.views ?? 0;
+
+    // XỬ LÝ DẪN LINK THEO PHÂN LOẠI
     const detailUrl =
         service.sourceType === "service"
             ? `/service/${service._id}?type=service`
-            : null;
+            : service.sourceType === "servicePackage"
+                ? `/package/${service._id}`
+                : null;
 
     return (
         <div
@@ -134,12 +138,12 @@ export default function ServiceCard({
         block overflow-hidden
 
         ${
-                    variant === "compact"
-                        ? "aspect-[4/4]"
-                        : variant === "featured"
-                            ? "aspect-[4/5]"
-                            : "aspect-[4/5]"
-                }
+                        variant === "compact"
+                            ? "aspect-[4/4]"
+                            : variant === "featured"
+                                ? "aspect-[4/5]"
+                                : "aspect-[4/5]"
+                    }
       `}
                 >
                     <img
