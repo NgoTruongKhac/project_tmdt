@@ -102,7 +102,7 @@ export default function ServiceCard({
     const detailUrl =
         service.sourceType === "service"
             ? `/service/${service._id}?type=service`
-            : `/service/${service._id}?type=servicePackage`;
+            : `/package/${service._id}`;
 
     return (
         <div

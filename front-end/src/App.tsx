@@ -12,6 +12,7 @@ import AuthGoogle from "./pages/AuthGoogle";
 import MyOrders from "./pages/MyOrders";
 import OrderHistory from "./pages/OrderHistory";
 import ServiceDetail from "./pages/ServiceDetail";
+import PackageDetail from "./pages/PackageDetail";
 import Order from "./pages/Order";
 import DesignerServices from "./pages/DesignerServices";
 import DesignerProfile from "./pages/DesignerProfile";
@@ -69,6 +70,7 @@ function App() {
               element={<DesignerServices />}
             />
             <Route path="/service/:id" element={<ServiceDetail />} />
+            <Route path="/package/:id" element={<PackageDetail />} />
             <Route path="/order" element={<Order />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
           </Route>

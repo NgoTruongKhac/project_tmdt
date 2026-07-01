@@ -88,7 +88,7 @@ export default function DesignerServicesModal({
                                     className="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl transition"
                                 >
                                     <Link
-                                        to={`/service/${service._id}?type=servicePackage`}
+                                        to={`/package/${service._id}`}
                                         onClick={onClose}
                                         aria-label={`Xem chi tiết ${service.name}`}
                                         className="block overflow-hidden"
@@ -130,7 +130,7 @@ export default function DesignerServicesModal({
                                         </div>
 
                                         <Link
-                                            to={`/service/${service._id}?type=servicePackage`}
+                                            to={`/package/${service._id}`}
                                             onClick={onClose}
                                             className="mt-7 block w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-4 rounded-2xl font-bold hover:opacity-90 transition text-center"
                                         >

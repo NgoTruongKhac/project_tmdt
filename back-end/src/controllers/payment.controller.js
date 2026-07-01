@@ -2,10 +2,12 @@ import moment from "moment";
 import crypto from "crypto";
 import { Payment } from "../models/payment.model.js";
 import { Service } from "../models/service.model.js";
+import { ServicePackage } from "../models/servicePackage.model.js";
 import { Order } from "../models/order.model.js";
 import { User } from "../models/user.model.js";
 import ErrorHandler from "../middlewares/errors/ErrorHandler.js";
 import { earnPointsForOrder, redeemPointsForOrder } from "./rewardController.js";
+import cloudinary from "../configs/cloudinary.config.js";
 import axios from "axios";
 import sharp from "sharp";
 
@@ -14,6 +16,26 @@ const VNP_TMNCODE = "RDKF68L4";
 const VNP_HASHSECRET = "LPY25CJWW3YNRHII4VEKD9MCWT8PGHGO";
 const VNP_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 const VNP_RETURNURL = "http://localhost:5173/payment-success";
+
+const uploadCustomerImage = (file) => {
+    if (!file) return "";
+
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: "creatify/order-requests",
+                resource_type: "image",
+                allowed_formats: ["jpg", "jpeg", "png", "webp"],
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result.secure_url);
+            },
+        );
+
+        stream.end(file.buffer);
+    });
+};
 
 const createOrderForPayment = async (payment) => {
     const orderData = {
@@ -30,7 +52,16 @@ const createOrderForPayment = async (payment) => {
             : "",
     };
 
-    orderData.service = payment.serviceId;
+    if (payment.notes) {
+        orderData.notes = payment.notes;
+    }
+    orderData.customerImage = payment.customerImage || "";
+
+    if (payment.serviceType === "ServicePackage") {
+        orderData.servicePackage = payment.serviceId;
+    } else {
+        orderData.service = payment.serviceId;
+    }
 
     await Order.updateOne(
         { orderCode: payment.orderId },
@@ -41,13 +72,17 @@ const createOrderForPayment = async (payment) => {
 
 export const createPaymentUrl = async (req, res, next) => {
     try {
-        const { serviceId } = req.body;
+        const { serviceId, serviceType = "Service", notes = "" } = req.body;
         const rewardPointsToUse = Number(req.body.rewardPointsToUse || 0);
         const userId = req.userId;
+        const customerImage = await uploadCustomerImage(req.file);
 
-        const service = await Service.findById(serviceId);
-        const designerId = service?.designerId;
-        const originalAmount = service?.price || 0;
+        const isServicePackage = serviceType === "ServicePackage";
+        const service = isServicePackage
+            ? await ServicePackage.findById(serviceId)
+            : await Service.findById(serviceId);
+        const designerId = isServicePackage ? service?.designer : service?.designerId;
+        const originalAmount = service?.discountPrice || service?.price || 0;
 
         const discountAmount = rewardPointsToUse * 100;
         const amountToPay = originalAmount - discountAmount;
@@ -77,11 +112,14 @@ export const createPaymentUrl = async (req, res, next) => {
             orderId,
             userId,
             serviceId,
+            serviceType: isServicePackage ? "ServicePackage" : "Service",
             designerId,
             amount: amountToPay,
             originalAmount,
             rewardPointsUsed: rewardPointsToUse,
             discountAmount,
+            notes: notes.trim(),
+            customerImage,
             status: "pending"
         });
 

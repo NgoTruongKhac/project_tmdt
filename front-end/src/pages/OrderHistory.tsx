@@ -503,8 +503,27 @@ function OrderDetailModal({
 
             {order.notes && (
               <div className="mt-5 rounded-3xl bg-neutral-50 p-5">
-                <div className="text-sm font-bold text-neutral-500">Ghi chú</div>
+                <div className="text-sm font-bold text-neutral-500">Lời nhắn / ghi chú</div>
                 <div className="mt-2 text-neutral-700">{order.notes}</div>
+              </div>
+            )}
+
+            {order.customerImage && (
+              <div className="mt-5 rounded-3xl bg-neutral-50 p-5">
+                <div className="text-sm font-bold text-neutral-500">Ảnh khách gửi</div>
+                <img
+                  src={order.customerImage}
+                  alt="Ảnh khách gửi"
+                  className="mt-3 h-56 w-full rounded-2xl object-cover"
+                />
+                <a
+                  href={order.customerImage}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-sm font-bold text-[#0b5cff] hover:underline"
+                >
+                  Mở ảnh
+                </a>
               </div>
             )}
 

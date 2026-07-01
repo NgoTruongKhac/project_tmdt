@@ -67,6 +67,7 @@ const formatOrderResponse = (order) => {
     cancelledAt: order.cancelledAt,
     cancellationReason: order.cancellationReason,
     notes: order.notes,
+    customerImage: order.customerImage,
     package: servicePackage,
     designer,
     customer,
