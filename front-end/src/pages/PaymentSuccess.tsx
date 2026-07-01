@@ -10,6 +10,9 @@ const PaymentSuccess: React.FC = () => {
     const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
     const [orderId, setOrderId] = useState<string | null>(null);
 
+    // Thêm state để lưu loại dịch vụ (service hoặc package)
+    const [serviceType, setServiceType] = useState<"service" | "package" | string | null>(null);
+
     useEffect(() => {
         const verifyPayment = async () => {
             const params = new URLSearchParams(location.search);
@@ -19,6 +22,10 @@ const PaymentSuccess: React.FC = () => {
             try {
                 const response = await axios.get(`http://localhost:3000/api/v1/payments/vnpay-return${location.search}`);
                 if (response.data.success) {
+                    // Giả sử Backend trả về loại dịch vụ trong response.data.serviceType hoặc response.data.type
+                    // Nếu Backend chưa có, bạn cần cập nhật Backend để trả về thông tin này
+                    setServiceType(response.data.serviceType || "service");
+
                     await fetchRewards();
                     await fetchHistory();
                     resetSessionRedeemedPoints();
@@ -40,14 +47,10 @@ const PaymentSuccess: React.FC = () => {
         return null;
     };
 
-    // Hàm xử lý tải file thật
     const handleDownload = async (format: string) => {
         if (!orderId) return;
-
         try {
             const token = getCookie("access_token");
-
-            // Gọi API bằng responseType 'blob' để nhận dữ liệu binary
             const response = await axios.get(
                 `http://localhost:3000/api/v1/payments/download/${orderId}/${format}`,
                 {
@@ -55,8 +58,6 @@ const PaymentSuccess: React.FC = () => {
                     responseType: 'blob'
                 }
             );
-
-            // Tạo link ảo để tải file
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -82,55 +83,63 @@ const PaymentSuccess: React.FC = () => {
 
                 {status === "success" && (
                     <>
-                        {/* Tiêu đề trạng thái */}
                         <h1 style={titleStyle}>Thanh toán thành công!</h1>
-                        <p style={subtitleStyle}>
-                            Bạn có thể tải xuống file thiết kế ngay bây giờ.
-                        </p>
 
-                        {/* Khu vực chọn định dạng tải xuống */}
-                        <h3 style={sectionTitleStyle}>Chọn định dạng tải xuống</h3>
+                        {/* 1. HIỂN THỊ CÂU CHÀO THEO LOẠI */}
+                        {serviceType !== "ServicePackage" && serviceType !== "package" ? (
+                            <p style={subtitleStyle}>
+                                Bạn có thể tải xuống file thiết kế ngay bây giờ.
+                            </p>
+                        ) : (
+                            <p style={subtitleStyle}>
+                                Yêu cầu của bạn đã được gửi đến Designer. Chúng tôi sẽ thông báo cho bạn khi sản phẩm hoàn tất!
+                            </p>
+                        )}
 
-                        {/* Danh sách các thẻ định dạng */}
-                        <div style={gridStyle}>
-                            {/* Khối PNG */}
-                            <div style={downloadCardStyle}>
-                                <div style={formatIconStyle}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0056b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        {/* 2. CHỈ HIỂN THỊ PHẦN TẢI XUỐNG NẾU KHÔNG PHẢI PACKAGE */}
+                        {(serviceType !== "ServicePackage" && serviceType !== "package") && (
+                            <>
+                                <h3 style={sectionTitleStyle}>Chọn định dạng tải xuống</h3>
+                                <div style={gridStyle}>
+                                    {/* Khối PNG */}
+                                    <div style={downloadCardStyle}>
+                                        <div style={formatIconStyle}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0056b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                        </div>
+                                        <div style={formatNameStyle}>PNG</div>
+                                        <div style={formatDescStyle}>Phù hợp đăng mạng xã hội</div>
+                                        <button onClick={() => handleDownload("PNG")} style={btnDownloadStyle}>
+                                            <span style={{marginRight: "6px"}}>↓</span> Tải xuống
+                                        </button>
+                                    </div>
+
+                                    {/* Khối JPG */}
+                                    <div style={downloadCardStyle}>
+                                        <div style={formatIconStyle}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0056b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                        </div>
+                                        <div style={formatNameStyle}>JPG</div>
+                                        <div style={formatDescStyle}>File nhẹ, dễ chia sẻ</div>
+                                        <button onClick={() => handleDownload("JPG")} style={btnDownloadStyle}>
+                                            <span style={{ marginRight: "6px" }}>↓</span> Tải xuống
+                                        </button>
+                                    </div>
+
+                                    {/* Khối WebP */}
+                                    <div style={downloadCardStyle}>
+                                        <div style={formatIconStyle}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0056b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                        </div>
+                                        <div style={formatNameStyle}>WEBP</div>
+                                        <div style={formatDescStyle}>Định dạng hiện đại, chất lượng cao</div>
+                                        <button onClick={() => handleDownload("WEBP")} style={btnDownloadStyle}>
+                                            <span style={{ marginRight: "6px" }}>↓</span> Tải xuống
+                                        </button>
+                                    </div>
                                 </div>
-                                <div style={formatNameStyle}>PNG</div>
-                                <div style={formatDescStyle}>Phù hợp đăng mạng xã hội</div>
-                                <button onClick={() => handleDownload("PNG")} style={btnDownloadStyle}>
-                                    <span style={{marginRight: "6px"}}>↓</span> Tải xuống
-                                </button>
-                            </div>
+                            </>
+                        )}
 
-                            {/* Khối JPG */}
-                            <div style={downloadCardStyle}>
-                                <div style={formatIconStyle}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0056b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                </div>
-                                <div style={formatNameStyle}>JPG</div>
-                                <div style={formatDescStyle}>File nhẹ, dễ chia sẻ</div>
-                                <button onClick={() => handleDownload("JPG")} style={btnDownloadStyle}>
-                                    <span style={{ marginRight: "6px" }}>↓</span> Tải xuống
-                                </button>
-                            </div>
-
-                            {/* Khối WebP */}
-                            <div style={downloadCardStyle}>
-                                <div style={formatIconStyle}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0056b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                </div>
-                                <div style={formatNameStyle}>WEBP</div>
-                                <div style={formatDescStyle}>Định dạng hiện đại, chất lượng cao</div>
-                                <button onClick={() => handleDownload("WEBP")} style={btnDownloadStyle}>
-                                    <span style={{ marginRight: "6px" }}>↓</span> Tải xuống
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Nút quay lại trang chủ */}
                         <div style={{ marginTop: "40px" }}>
                             <button onClick={() => navigate("/")} style={btnHomeStyle}>
                                 <span style={{ marginRight: "8px" }}>←</span> Quay lại trang chủ
@@ -153,8 +162,7 @@ const PaymentSuccess: React.FC = () => {
     );
 };
 
-// ---  STYLES ---
-
+// ... Các Styles giữ nguyên như cũ ...
 const containerStyle: React.CSSProperties = {
     backgroundColor: "#ffffff",
     minHeight: "100vh",

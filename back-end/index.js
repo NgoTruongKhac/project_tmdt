@@ -19,6 +19,7 @@ import passport from "passport";
 import "./src/configs/passport.config.js";
 import adminRoutes from "./src/routes/admin.route.js";
 import paymentRouter from "./src/routes/payment.route.js";
+import voucherRoutes from "./src/routes/voucher.route.js";
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use("/api/v1/rewards", rewardRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use('/uploads', express.static('public/uploads'));
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/vouchers", voucherRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

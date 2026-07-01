@@ -4,6 +4,14 @@ import axios from "axios";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useReward } from "../contexts/RewardContext";
 
+// Interface Voucher
+interface IVoucher {
+  _id: string;
+  code: string;
+  discountPercentage: number;
+  isActive: boolean;
+}
+
 interface IDesigner {
   _id?: string;
   id?: string;
@@ -33,7 +41,7 @@ interface IServicePackage {
 const API_IMAGE_URL = "http://localhost:3000/api/v1/services/image";
 
 const getServiceTitle = (service: IServicePackage) =>
-  service.name || service.title || "Dịch vụ thiết kế";
+    service.name || service.title || "Dịch vụ thiết kế";
 
 const getFileName = (path: string) => {
   if (!path) return "";
@@ -41,13 +49,13 @@ const getFileName = (path: string) => {
 };
 
 const isCloudinaryImage = (path?: string) =>
-  Boolean(path && path.includes("res.cloudinary.com"));
+    Boolean(path && path.includes("res.cloudinary.com"));
 
 const getServiceImages = (service: IServicePackage) => {
   const images = service.images?.length ? service.images : [];
   const allImages = service.thumbnail
-    ? [service.thumbnail, ...images.filter((img) => img !== service.thumbnail)]
-    : images;
+      ? [service.thumbnail, ...images.filter((img) => img !== service.thumbnail)]
+      : images;
 
   return allImages.filter(isCloudinaryImage);
 };
@@ -71,11 +79,28 @@ const ServiceDetail: React.FC = () => {
   const [activeImg, setActiveImg] = useState(0);
   const [rewardPointsToUse, setRewardPointsToUse] = useState(0);
 
+  // Voucher states
+  const [vouchers, setVouchers] = useState<IVoucher[]>([]);
+  const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null);
+  const [showVoucherDropdown, setShowVoucherDropdown] = useState(false);
+
   const auth = useAuthStore() as any;
   const { points, sessionRedeemedPoints, fetchHistory } = useReward();
 
   useEffect(() => {
     fetchHistory(1);
+    // Fetch vouchers
+    const fetchVouchers = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/v1/vouchers");
+        if (res.data.success) {
+          setVouchers(res.data.data.filter((v: IVoucher) => v.isActive));
+        }
+      } catch (err) {
+        console.error("Lỗi lấy voucher:", err);
+      }
+    };
+    fetchVouchers();
   }, [fetchHistory]);
 
   useEffect(() => {
@@ -86,9 +111,9 @@ const ServiceDetail: React.FC = () => {
 
         const detailType = searchParams.get("type");
         const detailEndpoint =
-          detailType === "servicePackage"
-            ? `http://localhost:3000/api/v1/services/package/${id}`
-            : `http://localhost:3000/api/v1/services/${id}`;
+            detailType === "servicePackage"
+                ? `http://localhost:3000/api/v1/services/package/${id}`
+                : `http://localhost:3000/api/v1/services/${id}`;
         const response = await axios.get(detailEndpoint);
         const payload = response.data;
         const data = payload.data || {};
@@ -113,7 +138,11 @@ const ServiceDetail: React.FC = () => {
   const displayPrice = service ? service.discountPrice || service.price : 0;
   const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1 - sessionRedeemedPoints * 100) / 100)));
   const totalRewardDiscount = (sessionRedeemedPoints + rewardPointsToUse) * 100;
-  const payableAmount = Math.max(displayPrice - totalRewardDiscount, 0);
+
+  // Logic tính giá: Sau khi trừ Reward, sau đó áp Voucher %
+  const afterRewardPrice = Math.max(displayPrice - totalRewardDiscount, 0);
+  const voucherDiscount = selectedVoucher ? (afterRewardPrice * selectedVoucher.discountPercentage) / 100 : 0;
+  const payableAmount = Math.max(afterRewardPrice - voucherDiscount, 0);
 
   useEffect(() => {
     if (rewardPointsToUse > maxRewardPointsToUse) {
@@ -144,14 +173,18 @@ const ServiceDetail: React.FC = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:3000/api/v1/payments/create-url",
-        { serviceId: id, rewardPointsToUse: isServicePackageDetail ? 0 : sessionRedeemedPoints + rewardPointsToUse },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+          "http://localhost:3000/api/v1/payments/create-url",
+          {
+            serviceId: id,
+            rewardPointsToUse: isServicePackageDetail ? 0 : sessionRedeemedPoints + rewardPointsToUse,
+            voucherId: selectedVoucher?._id // Thêm VoucherId
           },
-          withCredentials: true,
-        }
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
       );
 
       if (response.data.paymentUrl) {
@@ -225,7 +258,7 @@ const ServiceDetail: React.FC = () => {
                         {designer.fullName} <span style={styles.proBadge}>PRO</span>
                       </div>
                       <div style={styles.ratingText}>
-                        ★ {designer.rating ?? 0} - Designer
+                        Designer
                       </div>
                     </div>
                   </div>
@@ -253,6 +286,17 @@ const ServiceDetail: React.FC = () => {
                       <span style={styles.rewardTitle}>Dùng điểm thưởng</span>
                       <span style={styles.rewardBalance}>{points.toLocaleString("vi-VN")} điểm</span>
                     </div>
+
+                    {sessionRedeemedPoints > 0 && (
+                        <div style={styles.rewardAlreadyUsed}>
+                          <span>Đã đổi từ trang Rewards:</span>
+                          <span>
+                    <strong style={{ color: "#7c3aed" }}>-{sessionRedeemedPoints.toLocaleString("vi-VN")} điểm</strong>
+                    <span style={{ color: "#6b7280", marginLeft: "6px" }}>({(sessionRedeemedPoints * 100).toLocaleString("vi-VN")}đ)</span>
+                  </span>
+                        </div>
+                    )}
+
                     <div style={styles.rewardControl}>
                       <input
                           type="number"
@@ -273,12 +317,42 @@ const ServiceDetail: React.FC = () => {
                         Tối đa
                       </button>
                     </div>
-                    <div style={styles.rewardSummary}>
-                      <span>Giảm {rewardDiscount.toLocaleString("vi-VN")} đ</span>
-                      <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
-                    </div>
                   </div>
               )}
+
+              {/* PHẦN VOUCHER (MỚI) */}
+              <div style={styles.voucherBox}>
+                <div style={styles.voucherHeader} onClick={() => setShowVoucherDropdown(!showVoucherDropdown)}>
+                  <span style={styles.rewardTitle}>🏷️ {selectedVoucher ? `Mã: ${selectedVoucher.code}` : "Chọn Voucher"}</span>
+                  <span>{showVoucherDropdown ? "▲" : "▼"}</span>
+                </div>
+                {showVoucherDropdown && (
+                    <div style={styles.voucherList}>
+                      {vouchers.length > 0 ? vouchers.map(v => (
+                          <div
+                              key={v._id}
+                              style={{
+                                ...styles.voucherItem,
+                                backgroundColor: selectedVoucher?._id === v._id ? "#f3f4ff" : "transparent"
+                              }}
+                              onClick={() => { setSelectedVoucher(v); setShowVoucherDropdown(false); }}
+                          >
+                            <strong>{v.code}</strong>
+                            <span style={styles.voucherDiscountTag}>Giảm {v.discountPercentage}%</span>
+                          </div>
+                      )) : <div style={{padding: "10px", fontSize: "12px", color: "#999"}}>Không có voucher khả dụng</div>}
+                      {selectedVoucher && (
+                          <button style={styles.removeVoucherBtn} onClick={() => setSelectedVoucher(null)}>Hủy chọn voucher</button>
+                      )}
+                    </div>
+                )}
+              </div>
+
+              <div style={styles.rewardSummary}>
+                <span>Giảm từ điểm: -{totalRewardDiscount.toLocaleString("vi-VN")} đ</span>
+                {selectedVoucher && <span>Giảm Voucher: -{voucherDiscount.toLocaleString("vi-VN")} đ</span>}
+                <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
+              </div>
 
               <div style={styles.serviceCommitment}>
                 <div style={styles.featureItem}>✓ Nhận file sau khi thanh toán</div>
@@ -295,39 +369,9 @@ const ServiceDetail: React.FC = () => {
           </div>
         </div>
 
-        {/*<div style={styles.relatedSection}>*/}
-        {/*  <div style={styles.relatedHeader}>*/}
-        {/*    <h2 style={styles.relatedTitle}>Dịch vụ tương tự</h2>*/}
-        {/*  </div>*/}
-        {/*  <div style={styles.relatedGrid}>*/}
-        {/*    {relatedServices.map((item) => (*/}
-        {/*      isCloudinaryImage(item.images?.[0] || item.thumbnail) && (*/}
-        {/*        <div*/}
-        {/*          key={item._id}*/}
-        {/*          style={styles.relCard}*/}
-        {/*          onClick={() =>*/}
-        {/*            navigate(`/service/${item._id}?type=${item.listingType ? "servicePackage" : "service"}`)*/}
-        {/*          }*/}
-        {/*        >*/}
-        {/*          <div style={styles.relImgBox}>*/}
-        {/*            <img*/}
-        {/*              src={getProtectedServiceImage(item.images?.[0] || item.thumbnail)}*/}
-        {/*              style={styles.relImg}*/}
-        {/*              alt={getServiceTitle(item)}*/}
-        {/*            />*/}
-        {/*          </div>*/}
-        {/*          <div style={styles.relInfo}>*/}
-        {/*            <div style={styles.relTitle}>{getServiceTitle(item)}</div>*/}
-        {/*            <div style={styles.relPrice}>Từ {item.price.toLocaleString("vi-VN")} đ</div>*/}
-        {/*          </div>*/}
-        {/*        </div>*/}
-        {/*      )*/}
-        {/*    ))}*/}
-        {/*  </div>*/}
-        {/*</div>*/}
         <div style={styles.relatedSection}>
           <div style={styles.relatedHeader}>
-            <h2 style={styles.relatedTitle}>Gói dịch vụ tương tự</h2>
+            <h2 style={styles.relatedTitle}>Dịch vụ tương tự</h2>
           </div>
           <div style={styles.relatedGrid}>
             {relatedServices.map((item) => (
@@ -348,31 +392,19 @@ const ServiceDetail: React.FC = () => {
   );
 };
 
+// Cập nhật thêm Styles cho phần Voucher
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {maxWidth: "1250px", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a"},
+  // ... các style cũ ...
+  container: {maxWidth: "1250px", padding: "30px 20px", fontFamily: "'Segoe UI', Roboto, sans-serif", color: "#1a1a1a", margin: "0 auto"},
   centerMsg: {textAlign: "center", padding: "100px", fontSize: "16px"},
   mainGrid: {display: "grid", gridTemplateColumns: "1fr 360px", gap: "50px", alignItems: "flex-start"},
   leftCol: {display: "flex", flexDirection: "column"},
   imageSection: {width: "100%", display: "flex", flexDirection: "column", gap: "12px"},
-  mainImageWrapper: {
-    width: "100%",
-    height: "450px",
-    borderRadius: "20px",
-    overflow: "hidden",
-    backgroundColor: "#f4f4f4",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
+  mainImageWrapper: { width: "100%", height: "450px", borderRadius: "20px", overflow: "hidden", backgroundColor: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center" },
   mainImage: {width: "100%", height: "100%", objectFit: "contain"},
   noImage: {color: "#777", fontSize: "15px", fontWeight: 600},
   thumbnailRow: {display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "5px"},
-  thumbContainer: {
-    width: "70px",
-    height: "50px",
-    flexShrink: 0,
-    borderRadius: "8px",
-    overflow: "hidden", cursor: "pointer", background: "white", padding: 0 },
+  thumbContainer: { width: "70px", height: "50px", flexShrink: 0, borderRadius: "8px", overflow: "hidden", cursor: "pointer", background: "white", padding: 0 },
   thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   infoSection: { marginTop: "30px" },
   designerRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" },
@@ -387,14 +419,15 @@ const styles: { [key: string]: React.CSSProperties } = {
   priceSection: { display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "25px", borderBottom: "1px solid #f5f5f5", paddingBottom: "20px" },
   priceValue: { fontSize: "30px", fontWeight: "800", color: "#000" },
   originalPrice: { color: "#999", fontSize: "16px", textDecoration: "line-through" },
-  rewardBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", marginBottom: "20px", backgroundColor: "#fafafa" },
+  rewardBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", marginBottom: "15px", backgroundColor: "#fafafa" },
   rewardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "10px" },
   rewardTitle: { fontSize: "14px", fontWeight: "700", color: "#111" },
   rewardBalance: { fontSize: "13px", fontWeight: "600", color: "#b45309" },
+  rewardAlreadyUsed: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#6b7280", backgroundColor: "#f3f0ff", border: "1px solid #ede9fe", borderRadius: "8px", padding: "8px 10px", marginBottom: "10px" },
   rewardControl: { display: "grid", gridTemplateColumns: "1fr auto", gap: "8px", marginBottom: "10px" },
   rewardInput: { minWidth: 0, border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", fontWeight: "600", outline: "none" },
   rewardMaxBtn: { border: "1px solid #0075f2", borderRadius: "8px", padding: "0 12px", backgroundColor: "#fff", color: "#0075f2", fontSize: "13px", fontWeight: "700", cursor: "pointer" },
-  rewardSummary: { display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "13px", color: "#444" },
+  rewardSummary: { display: "flex", flexDirection: "column", gap: "5px", fontSize: "14px", color: "#444", marginBottom: "20px" },
   serviceCommitment: { marginBottom: "25px" },
   featureItem: { fontSize: "14px", color: "#555", marginBottom: "12px", display: "flex", alignItems: "center" },
   orderBtn: { width: "100%", padding: "16px", backgroundColor: "#0075f2", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "700", fontSize: "16px", cursor: "pointer", marginBottom: "12px", transition: "0.2s" },
@@ -408,6 +441,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   relImg: { width: "100%", height: "100%", objectFit: "cover" },
   relTitle: { fontSize: "15px", fontWeight: "700", marginBottom: "5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   relPrice: { fontSize: "14px", color: "#666" },
+
+  // MỚI: Styles cho Voucher
+  voucherBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "12px", marginBottom: "15px", backgroundColor: "#fff", cursor: "pointer", position: "relative" },
+  voucherHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "14px", fontWeight: "600" },
+  voucherList: { marginTop: "10px", borderTop: "1px solid #eee", maxHeight: "150px", overflowY: "auto" },
+  voucherItem: { padding: "10px", fontSize: "13px", borderBottom: "1px solid #f9f9f9", display: "flex", justifyContent: "space-between", transition: "0.2s" },
+  voucherDiscountTag: { color: "#059669", fontWeight: "700", backgroundColor: "#ecfdf5", padding: "2px 6px", borderRadius: "4px" },
+  removeVoucherBtn: { width: "100%", padding: "8px", fontSize: "12px", color: "#dc2626", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" },
 };
 
 export default ServiceDetail;

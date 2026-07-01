@@ -4,6 +4,14 @@ import axios from "axios";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useReward } from "../contexts/RewardContext";
 
+// Interface Voucher
+interface IVoucher {
+    _id: string;
+    code: string;
+    discountPercentage: number;
+    isActive: boolean;
+}
+
 interface IDesigner {
     _id?: string;
     id?: string;
@@ -70,6 +78,11 @@ const PackageDetail: React.FC = () => {
     const [activeImg, setActiveImg] = useState(0);
     const [rewardPointsToUse, setRewardPointsToUse] = useState(0);
 
+    // Voucher States
+    const [vouchers, setVouchers] = useState<IVoucher[]>([]);
+    const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null);
+    const [showVoucherDropdown, setShowVoucherDropdown] = useState(false);
+
     // Popup States
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userNote, setUserNote] = useState("");
@@ -83,7 +96,7 @@ const PackageDetail: React.FC = () => {
             try {
                 setLoading(true);
                 setError("");
-                // Trang này mặc định lấy dữ liệu package
+
                 const response = await axios.get(`http://localhost:3000/api/v1/services/package/${id}`);
                 const payload = response.data;
                 const data = payload.data || {};
@@ -91,6 +104,13 @@ const PackageDetail: React.FC = () => {
 
                 setService(serviceData);
                 setRelatedServices(payload.relatedServices || data.relatedServices || []);
+
+                // Fetch Vouchers
+                const resV = await axios.get("http://localhost:3000/api/v1/vouchers");
+                if(resV.data.success) {
+                    setVouchers(resV.data.data.filter((v: IVoucher) => v.isActive));
+                }
+
                 setActiveImg(0);
             } catch {
                 setError("Không thể tải dữ liệu sản phẩm");
@@ -107,7 +127,11 @@ const PackageDetail: React.FC = () => {
     const displayPrice = service ? service.discountPrice || service.price : 0;
     const maxRewardPointsToUse = Math.max(0, Math.min(points, Math.floor((displayPrice - 1) / 100)));
     const rewardDiscount = rewardPointsToUse * 100;
-    const payableAmount = Math.max(displayPrice - rewardDiscount, 0);
+
+    // Logic tính giá thanh toán
+    const afterRewardPrice = Math.max(displayPrice - rewardDiscount, 0);
+    const voucherDiscount = selectedVoucher ? (afterRewardPrice * selectedVoucher.discountPercentage) / 100 : 0;
+    const payableAmount = Math.max(afterRewardPrice - voucherDiscount, 0);
 
     useEffect(() => {
         if (rewardPointsToUse > maxRewardPointsToUse) {
@@ -145,6 +169,7 @@ const PackageDetail: React.FC = () => {
             formData.append("serviceId", id || "");
             formData.append("serviceType", "ServicePackage");
             formData.append("rewardPointsToUse", String(rewardPointsToUse));
+            formData.append("voucherId", selectedVoucher?._id || ""); // Thêm VoucherId vào formData
             formData.append("notes", userNote.trim());
             if (selectedFile) {
                 formData.append("customerImage", selectedFile);
@@ -210,7 +235,7 @@ const PackageDetail: React.FC = () => {
 
                         <div style={styles.modalActions}>
                             <button style={styles.cancelBtn} onClick={() => setIsModalOpen(false)}>Hủy</button>
-                            <button style={styles.payNowBtn} onClick={handleFinalPayment}>Thanh toán</button>
+                            <button style={styles.payNowBtn} onClick={handleFinalPayment}>Thanh toán: {payableAmount.toLocaleString()}đ</button>
                         </div>
                     </div>
                 </div>
@@ -267,7 +292,7 @@ const PackageDetail: React.FC = () => {
                                         {designer.fullName} <span style={styles.proBadge}>PRO</span>
                                     </div>
                                     <div style={styles.ratingText}>
-                                        ★ {designer.rating ?? 0} - Designer
+                                        Designer
                                     </div>
                                 </div>
                             </div>
@@ -303,10 +328,40 @@ const PackageDetail: React.FC = () => {
                                 />
                                 <button type="button" onClick={() => setRewardPointsToUse(maxRewardPointsToUse)} style={styles.rewardMaxBtn}>Tối đa</button>
                             </div>
-                            <div style={styles.rewardSummary}>
-                                <span>Giảm {rewardDiscount.toLocaleString("vi-VN")} đ</span>
-                                <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
+                        </div>
+
+                        {/* PHẦN VOUCHER (MỚI) */}
+                        <div style={styles.voucherBox}>
+                            <div style={styles.voucherHeader} onClick={() => setShowVoucherDropdown(!showVoucherDropdown)}>
+                                <span style={styles.rewardTitle}>🏷️ {selectedVoucher ? `Mã: ${selectedVoucher.code}` : "Chọn Voucher"}</span>
+                                <span>{showVoucherDropdown ? "▲" : "▼"}</span>
                             </div>
+                            {showVoucherDropdown && (
+                                <div style={styles.voucherList}>
+                                    {vouchers.length > 0 ? vouchers.map(v => (
+                                        <div
+                                            key={v._id}
+                                            style={{
+                                                ...styles.voucherItem,
+                                                backgroundColor: selectedVoucher?._id === v._id ? "#f3f4ff" : "transparent"
+                                            }}
+                                            onClick={() => { setSelectedVoucher(v); setShowVoucherDropdown(false); }}
+                                        >
+                                            <strong>{v.code}</strong>
+                                            <span style={styles.voucherDiscountTag}>Giảm {v.discountPercentage}%</span>
+                                        </div>
+                                    )) : <div style={{padding: "10px", fontSize: "12px", color: "#999"}}>Không có voucher khả dụng</div>}
+                                    {selectedVoucher && (
+                                        <button style={styles.removeVoucherBtn} onClick={() => setSelectedVoucher(null)}>Hủy chọn voucher</button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={styles.rewardSummary}>
+                            <span>Giảm điểm: -{rewardDiscount.toLocaleString()} đ</span>
+                            {selectedVoucher && <span>Voucher: -{voucherDiscount.toLocaleString()} đ</span>}
+                            <strong>Thanh toán {payableAmount.toLocaleString("vi-VN")} đ</strong>
                         </div>
 
                         <div style={styles.serviceCommitment}>
@@ -371,20 +426,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     priceSection: { display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "25px", borderBottom: "1px solid #f5f5f5", paddingBottom: "20px" },
     priceValue: { fontSize: "30px", fontWeight: "800", color: "#000" },
     originalPrice: { color: "#999", fontSize: "16px", textDecoration: "line-through" },
-    rewardBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", marginBottom: "20px", backgroundColor: "#fafafa" },
+    rewardBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "14px", marginBottom: "15px", backgroundColor: "#fafafa" },
     rewardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "10px" },
     rewardTitle: { fontSize: "14px", fontWeight: "700", color: "#111" },
     rewardBalance: { fontSize: "13px", fontWeight: "600", color: "#b45309" },
     rewardControl: { display: "grid", gridTemplateColumns: "1fr auto", gap: "8px", marginBottom: "10px" },
     rewardInput: { minWidth: 0, border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px 12px", fontSize: "14px", fontWeight: "600", outline: "none" },
     rewardMaxBtn: { border: "1px solid #0075f2", borderRadius: "8px", padding: "0 12px", backgroundColor: "#fff", color: "#0075f2", fontSize: "13px", fontWeight: "700", cursor: "pointer" },
-    rewardSummary: { display: "flex", justifyContent: "space-between", gap: "10px", fontSize: "13px", color: "#444" },
+    rewardSummary: { display: "flex", flexDirection: "column", gap: "5px", fontSize: "14px", color: "#444", marginBottom: "20px" },
     serviceCommitment: { marginBottom: "25px" },
     featureItem: { fontSize: "14px", color: "#555", marginBottom: "12px", display: "flex", alignItems: "center" },
     orderBtn: { width: "100%", padding: "16px", backgroundColor: "#0075f2", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "700", fontSize: "16px", cursor: "pointer", marginBottom: "12px", transition: "0.2s" },
     contactBtn: { width: "100%", padding: "16px", backgroundColor: "#fff", color: "#000", border: "1px solid #ddd", borderRadius: "12px", fontWeight: "600", fontSize: "16px", cursor: "pointer" },
 
-    // Styles cho Modal
+    // Modal
     modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, backdropFilter: "blur(4px)" },
     modalContent: { backgroundColor: "#fff", borderRadius: "24px", padding: "30px", width: "90%", maxWidth: "500px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" },
     modalTitle: { fontSize: "20px", fontWeight: "800", marginBottom: "10px" },
@@ -406,6 +461,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     relImg: { width: "100%", height: "100%", objectFit: "cover" },
     relTitle: { fontSize: "15px", fontWeight: "700", marginBottom: "5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
     relPrice: { fontSize: "14px", color: "#666" },
+
+    // Voucher styles
+    voucherBox: { border: "1px solid #e5e7eb", borderRadius: "12px", padding: "12px", marginBottom: "15px", backgroundColor: "#fff", cursor: "pointer", position: "relative" },
+    voucherHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "14px", fontWeight: "600" },
+    voucherList: { marginTop: "10px", borderTop: "1px solid #eee", maxHeight: "150px", overflowY: "auto" },
+    voucherItem: { padding: "10px", fontSize: "13px", borderBottom: "1px solid #f9f9f9", display: "flex", justifyContent: "space-between", transition: "0.2s" },
+    voucherDiscountTag: { color: "#059669", fontWeight: "700", backgroundColor: "#ecfdf5", padding: "2px 6px", borderRadius: "4px" },
+    removeVoucherBtn: { width: "100%", padding: "8px", fontSize: "12px", color: "#dc2626", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" },
 };
 
 export default PackageDetail;

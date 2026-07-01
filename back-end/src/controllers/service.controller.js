@@ -326,13 +326,19 @@ export const getServiceDetail = async (req, res) => {
     if (!service)
       return res.status(404).json({ message: "Dịch vụ không tồn tại" });
 
-    // Tìm dịch vụ tương tự dựa trên category
+    // --- LẤY DỊCH VỤ TƯƠNG TỰ: Lấy bất kỳ dịch vụ nào khác ---
     const relatedServices = await Service.find({
       _id: { $ne: id },
-      status: "approved",
-    }).limit(5).select("title price images category");
+      // status: "approved" // Nếu model Service của bạn có trường status thì hãy mở dòng này
+    })
+        .limit(5)
+        .select("title price images category");
 
-    res.status(200).json({ type: "service", service, relatedServices });
+    res.status(200).json({
+      type: "service",
+      service,
+      relatedServices
+    });
   } catch (error) {
     res.status(500).json({ message: "Lỗi Server", error: error.message });
   }
@@ -643,27 +649,32 @@ export const getServicePackageById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
-      success: false,
-      message: "ID dịch vụ không hợp lệ",
-    });
+    return res.status(400).json({ success: false, message: "ID dịch vụ không hợp lệ" });
   }
 
   const service = await ServicePackage.findById(id)
-    .populate("designer", "fullName profilePicture")
-    .select("-__v");
+      .populate("designer", "fullName profilePicture")
+      .select("-__v");
 
   if (!service) {
-    return res.status(404).json({
-      success: false,
-      message: "Không tìm thấy dịch vụ",
-    });
+    return res.status(404).json({ success: false, message: "Không tìm thấy dịch vụ" });
   }
+
+  // --- LẤY GÓI TƯƠNG TỰ: Chỉ cần cùng là Package ---
+  const relatedServices = await ServicePackage.find({
+    _id: { $ne: id },           // Loại trừ gói hiện tại
+    status: "approved",         // Đã được duyệt
+    isActive: true              // Đang hoạt động
+  })
+      .limit(5)                     // Lấy tối đa 8 gói
+      .sort({ createdAt: -1 });      // Gói mới nhất lên trước
 
   res.status(200).json({
     success: true,
     message: "Lấy chi tiết dịch vụ thành công",
-    data: normalizeServicePackage(service),
+    // Lưu ý: Trả về field 'service' để khớp với code Frontend bạn đang dùng
+    service: normalizeServicePackage(service),
+    relatedServices: relatedServices.map(normalizeServicePackage)
   });
 });
 
