@@ -98,13 +98,11 @@ export default function ServiceCard({
     const badgeContent = getBadgeContent();
     const views = service.views ?? 0;
 
-    // XỬ LÝ DẪN LINK THEO PHÂN LOẠI
+    // Xử lý link chi tiết theo nguồn dữ liệu.
     const detailUrl =
         service.sourceType === "service"
             ? `/service/${service._id}?type=service`
-            : service.sourceType === "servicePackage"
-                ? `/package/${service._id}`
-                : null;
+            : `/service/${service._id}?type=servicePackage`;
 
     return (
         <div

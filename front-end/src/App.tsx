@@ -36,7 +36,6 @@ import ManageOrders from "./pages/designer/ManageOrders";
 import Dashboad from "./pages/designer/Dashboad";
 import ManageServices from "./pages/designer/ManageServices";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import PackageDetail from "./pages/PackageDetail";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -70,7 +69,6 @@ function App() {
               element={<DesignerServices />}
             />
             <Route path="/service/:id" element={<ServiceDetail />} />
-            <Route path="/package/:id" element={<PackageDetail />} />
             <Route path="/order" element={<Order />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
           </Route>
